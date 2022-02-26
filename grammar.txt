@@ -1,0 +1,53 @@
+statment    : expr ((COMMA expr)* KEYWORD)? end
+
+expression  : KEYWORD:var IDENTIFIER EQUALS expression
+            : KEYWORD:write expression
+            : arith_op
+            : logic_op
+
+logic_op    : comp_op (KEYWORD:and|KEYWORD:or comp_op)*
+            : KEYWORD:not logic_op
+
+comp_op     : arith_op (DOUBLE_EQUALS|NOT_EQUALS|GREATER|LOWER|GREATER_EQUALS|LOWER_EQUALS arith_op)*
+
+arith_op    : term (PLUS|MINUS term)*
+
+term        : factor (MULT|DIV factor)*
+
+factor      : PLUS|MINUS value
+            : LPAREN arith_op RPAREN
+            : call
+            : list_element
+            : if_expr
+            : list_expr
+            : func_def
+            : value
+
+call        : IDENTIFIER (LPAREN (expr (COMMA expr)*)? RPAREN)?
+
+get_list_element: IDENTIFIER LSQARE expr RSQARE
+set_list_element: IDENTIFIER LSQARE expr RSQARE EQUALS expr
+
+if_expr     : KEYWORD:if 
+              logic_op COLON 
+              statment
+              (KEYWORD:else COLON 
+              statment )?
+
+list_expr   : LSQARE (expr (COMMA expr)*)? RSQARE
+
+func_def    : KEYWORKD:function IDENTIFIER
+              LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+              COLON statment
+
+value       : NUMBER|STRING|IDENTIFIER
+
+
+$var count = 0
+
+
+trigger on <event>: <expr>
+
+function for(start, finish, body): if start < finish: body(), var start = start + 1, for(start, finish, body) end end
+function calc(value_1, op, value_2): if op == "+": value_1 + value_2 else: if op == "-": value_1 - value_2 else: if op == "*": value_1 * value_2 else: if op == "/": value_1 / value_2
+

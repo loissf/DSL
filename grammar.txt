@@ -45,6 +45,12 @@ value       : NUMBER|STRING|IDENTIFIER
 
 $var count = 0
 
+expression {
+    keyword: var ,
+    identifier: count ,
+    equals,
+    number: 0
+}
 
 trigger on <event>: <expr>
 

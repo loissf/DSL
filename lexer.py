@@ -20,6 +20,8 @@ KEYWORDS = [
     'else',
     'function',
     'end',
+    'class',
+    'this',
     'void'
 ]
 
@@ -94,6 +96,10 @@ class Lexer:
             elif self.current_char == ',':
                 self.advance()
                 yield Token(TokenType.COMMA, self.position)
+
+            elif self.current_char == '.':
+                self.advance()
+                yield Token(TokenType.DOT, self.position)
                 
             else:
                 char = self.current_char

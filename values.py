@@ -30,7 +30,7 @@ class List(Value):
         
     def setElement(self, index, value):
         self.value[int(index)] = value
-            
+
 @dataclass
 class Callable:
     name: str
@@ -98,3 +98,43 @@ class BuiltInFunction(Callable):
         return f'<built_in_function {self.name}>'
 
 BuiltInFunction.write       = BuiltInFunction('write')
+
+@dataclass(repr=False)
+class Class(Callable):
+    body_node: any
+
+    def execute(self, args, context: Context):
+        
+        instance_context = Context(self.name, context.symbol_table, context)     # Copy parent context
+        instance_context.symbol_table.remove(self.name)
+
+        interpreter = Interpreter()                                                 
+        interpreter.visit(self.body_node, context)                                  # execute body_node     # should contain function definitions and parameters ?
+
+        constructor = instance_context.symbol_table.get(self.name)               # from the class body pick the function with the same name      # this definition overrides class symbol name inside the class
+        if constructor:                                                             # check if has a user-defined constructor
+            if not isinstance(constructor, Function):                               # check if the constructor is a function
+                raise Exception((f'{constructor} is not callable'))
+            arg_names = constructor.arg_names                                           # get the required arguments for the constructor
+            self.check_args(args, arg_names)                                            # check if the class call arguments match
+            constructor_context = self.create_context(args, arg_names, context)            # create the context of the future object
+            result = constructor.execute(args, constructor_context)                        # constructor shares context with the instance of the future object     # result of the constructor can be ignored
+        return Object(self.name, instance_context)
+        
+
+    def __repr__(self):
+        return f'<class {self.name}>'
+
+@dataclass(repr=False)
+class Object:
+    class_name: str
+    object_context: Context
+
+    def getAttribute(self, attr):
+        return self.object_context.symbol_table.get(attr)
+
+    def setAttribute(self, attr, value):
+        self.object_context.symbol_table.set(attr, value)
+
+    def __repr__(self):
+        return f'<{self.class_name} object>'

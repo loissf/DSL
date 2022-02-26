@@ -31,6 +31,24 @@ class Interpreter:
         print(value)
         return None
     '''
+    def visit_ParentContextNode(self, node, context):
+        if context.parent == None:
+            raise TypeError(f"'this' is not defined", node.position)
+        return Object(context.display_name, context.parent)
+
+    def visit_AttributeAccessNode(self, node, context):
+        object_value = self.visit(node.value_node, context)
+
+        if not isinstance(object_value, Object):
+            raise TypeError(f'{object_value} is not an object', node.position)
+
+        attribute_value = self.visit(node.attribute_node, object_value.object_context)
+
+        if attribute_value == None:
+            raise TypeError(f'{node.attribute_node.var_name_token.value} is not defined', node.position)
+
+        return attribute_value
+
     def visit_VarAccessNode(self, node, context):
         var_name = node.var_name_token.value
         value = context.symbol_table.get(var_name)
@@ -92,6 +110,17 @@ class Interpreter:
         if node.func_name_token:
             context.symbol_table.set(func_name, function)
 
+        return None
+
+    def visit_ClassDefNode(self, node, context):
+        class_name = node.class_name_token.value if node.class_name_token else None
+        body_node = node.body_node
+
+        new_class = Class(class_name, body_node)
+
+        if node.class_name_token:
+            context.symbol_table.set(class_name, new_class)
+        
         return None
 
     def visit_CallNode(self, node, context):
@@ -168,4 +197,4 @@ class Interpreter:
         except:
             raise TypeError("Runtime math error", node.position)
 
-from values import Number, String, Boolean, Function, List, Callable
+from values import Number, String, Boolean, Function, List, Callable, Class, Object

@@ -46,6 +46,7 @@ class Parser:
         #########
         if self.current_token.matches(TokenType.KEYWORD, 'var'):
             position = self.current_token.position
+            
             self.advance()
              
             if self.current_token.type != TokenType.IDENTIFIER:
@@ -175,6 +176,9 @@ class Parser:
         elif self.current_token.matches(TokenType.KEYWORD, 'function'):
             return self.func_def()
 
+        elif self.current_token.matches(TokenType.KEYWORD, 'class'):
+            return self.class_def() 
+
         elif self.current_token.matches(TokenType.KEYWORD, 'if'):
             return self.if_expr()
 
@@ -213,13 +217,13 @@ class Parser:
         return value
 
     def list_element(self):
-        value = self.value()
+        attribute = self.attribute()
 
         # ListAccessNode        identifier[]
         # ListAsssingNode       identifier[] = expression
         #########
         if self.current_token != None and self.current_token.type == TokenType.LSQUARE:
-            list_node = value
+            list_node = attribute
             index = None
             self.advance()
 
@@ -241,6 +245,17 @@ class Parser:
                     return ListAccessNode(list_node, index)
         #########
         
+        return attribute
+
+    def attribute(self):
+        value = self.value()
+        position = self.current_token.position
+
+        if self.current_token.type == TokenType.DOT:
+            self.advance()
+            attribute = self.attribute()
+            return AttributeAccessNode(position, value, attribute)
+
         return value
 
     def value(self):
@@ -251,6 +266,10 @@ class Parser:
         if token.type == TokenType.IDENTIFIER:
             self.advance()
             return VarAccessNode(token)
+
+        elif token.matches(TokenType.KEYWORD, 'this'):
+            self.advance()
+            return ParentContextNode(token.position, token)
 
         elif token.type == TokenType.NUMBER:
             self.advance()
@@ -316,7 +335,26 @@ class Parser:
 
         body_node = self.statment()
 
-        return FuncDefNode(position, func_name_token, body_node, arg_name_tokens)
+        return FuncDefNode(position, body_node, func_name_token, arg_name_tokens)
+
+    def class_def(self):
+        position = self.current_token.position
+        self.advance()
+
+        if self.current_token.type == TokenType.IDENTIFIER:
+            class_name_token = self.current_token
+            self.advance()
+            if self.current_token.type != TokenType.COLON:
+                raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+        else:
+            class_name_token = None
+            if self.current_token.type != TokenType.COLON:
+                raise SyntaxError("Invalid syntax, expected identifier or ':'", self.current_token.position)
+
+        self.advance()
+
+        body_node = self.statment()
+        return ClassDefNode(position, body_node, class_name_token)
 
     # IfNode                    if logic_operation: statment (else: statment)?
     def if_expr(self):

@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from tokens import Token, TokenType
 
+# DEFINITION OF THE ABSTRACT SYNTAX TREE NODES
+# The abstract syntax tree is a node itself, that may have more nodes as parameters
+# The root node is the entry point for the interpreter
+
 @dataclass
 class Node:
     position: int

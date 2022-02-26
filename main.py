@@ -1,6 +1,7 @@
 import discord
 from shell import Shell
 
+# Discord bot logic token
 TOKEN = 'NjM4MzUyOTE0MTUwMTk1MjEx.Xbbeeg.ioChBXx8fgNonx_WH81MBswYHfg'
 
 def main():

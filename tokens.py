@@ -26,6 +26,7 @@ class TokenType(Enum):
     COMMA           = 20    # ,
     EOF             = 21    # end of file
 
+# Groups of token types that are parsed together in the same node
 @dataclass
 class TypeGroups:
 

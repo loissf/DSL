@@ -2,11 +2,11 @@ from tokens import Token, TokenType
 import string
 from errors import IllegalCharError, SyntaxError
 
-WHITESPACE = ' \n\t'
-DIGITS = '0123456789'
-LOGIC_OP = '=!><'
-LETTERS = string.ascii_letters
-LETTERS_DIGITS = LETTERS + DIGITS
+WHITESPACE          = ' \n\t'
+DIGITS              = '0123456789'
+LOGIC_OP            = '=!><'
+LETTERS             = string.ascii_letters
+LETTERS_DIGITS      = LETTERS + DIGITS
 
 KEYWORDS = [
     'var',
@@ -36,6 +36,7 @@ class Lexer:
         except StopIteration:
             self.current_char = None
 
+    # Lexer entry point, returns a generator object with all the tokens found
     def generate_tokens(self):
         while self.current_char != None:
 
@@ -101,7 +102,7 @@ class Lexer:
 
         yield Token(TokenType.EOF, self.position)
         
-
+    # Generates number token with all digits found as value
     def generate_number(self):
         decimal_point_count = 0
         number = self.current_char
@@ -119,6 +120,7 @@ class Lexer:
 
         return Token(TokenType.NUMBER, start_position, float(number))
 
+    # Generates either double char or single char logic operator, or equals token
     def generate_logic_op(self):
         first_op = self.current_char
         start_position = self.position
@@ -145,7 +147,8 @@ class Lexer:
 
         self.advance()
         return token
-
+    
+    # Generates string token with all characters found between '"' as value
     def generate_string(self):
         string = ''
         start_position = self.position
@@ -160,6 +163,7 @@ class Lexer:
 
         return Token(TokenType.STRING, start_position, string)
 
+    # Generates identifier all characters, digits and '_' found as value
     def generate_identifier(self):
         identifier = ''
         start_position = self.position
@@ -168,5 +172,6 @@ class Lexer:
             identifier += self.current_char
             self.advance()
 
+        # If the identifier found matches with any of the keywords, the returned token type will be keyword instead
         token_type = TokenType.KEYWORD if identifier in KEYWORDS else TokenType.IDENTIFIER
         return Token(token_type, start_position, identifier)

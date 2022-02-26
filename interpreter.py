@@ -4,6 +4,11 @@ from tokens import TypeGroups
 from errors import TypeError
 
 class Interpreter:
+    
+    # Each visit method returns either a value or the result of another visit method
+    # meaning the interpreter goes down the tree until it finds a value
+
+    # Method to fetch a node in its visit_Name method
     def visit(self, node, context):
         method = getattr(self, f'visit_{type(node).__name__}')
         return method(node, context)

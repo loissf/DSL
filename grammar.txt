@@ -45,15 +45,47 @@ value       : NUMBER|STRING|IDENTIFIER
 
 $var count = 0
 
-expression {
-    keyword: var ,
-    identifier: count ,
-    equals,
-    number: 0
-}
-
 trigger on <event>: <expr>
 
 function for(start, finish, body): if start < finish: body(), var start = start + 1, for(start, finish, body) end end
 function calc(value_1, op, value_2): if op == "+": value_1 + value_2 else: if op == "-": value_1 - value_2 else: if op == "*": value_1 * value_2 else: if op == "/": value_1 / value_2
 
+class foo:
+
+    function foo():
+        var a = "valueA",
+        var b = "valueB"
+    end,
+
+    function test():
+        write(a),
+        write(b)
+    end
+
+end
+
+
+# Possible Class type declaration
+# Requires Object type, this|self keyword, period '.' tokentype
+
+class Class(Callable):
+
+    body_node = any
+    arg_names = []
+
+    def execute(self, args, context: Context):
+        interpreter = Interpreter()
+
+        self.check_args(args, self.arg_names)
+        new_context = self.create_context(args, self.arg_names, context)
+
+        interpreter.visit(self.body_node, new_context)
+
+        constructor = new_context.symbol_table.get(self.name)
+        call = CallNode(constructor, new_context)
+
+        interpreter.visit(call, new_context)
+
+        return Object(new_context)
+
+class Object()

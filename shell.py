@@ -15,7 +15,8 @@ class Shell:
         # BUILT IN FUNCTIONS
         self.context.symbol_table.set('write', BuiltInFunction.write)
         # BUILT IN FUNCTIONS
-
+    
+    # Executes a command and returns either the console output or an error message
     def run_command(self, command):
         try:
             lexer = Lexer(command)
@@ -31,6 +32,9 @@ class Shell:
             error_message = f'{e}\n{self.pointer_string(command, e.position)}'
             return error_message
 
+    # DEBUG FUNCTIONS
+    #######################################
+    # Returns the string of tokens
     def tokenize_command(self, command):
         try:
             lexer = Lexer(command)
@@ -39,7 +43,8 @@ class Shell:
         except Error as e:
             error_message = f'{e}\n{self.pointer_string(command, e.position)}'
             return error_message
-
+    
+    # Returns the abstract syntax tree
     def parse_command(self, command):
         try:
             lexer = Lexer(command)
@@ -51,7 +56,10 @@ class Shell:
         except Error as e:
             error_message = f'{e}\n{self.pointer_string(command, e.position)}'
             return error_message
+    #########################################
 
+    # Returns the given text with a pointer towards the character in the given position
+    # May not work with long or multiline statmets
     def pointer_string(self, text, position):
         whitespace = [' ']
         pointer = whitespace * (position-1) + ['^'] + whitespace * (len(text) - position)

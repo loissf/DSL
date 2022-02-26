@@ -76,7 +76,7 @@ class Function(Callable):
 @dataclass(repr=False)
 class BuiltInFunction(Callable):
 
-    def execute(self, args, context):
+    def execute(self, args, context: Context):
         
         method_name = f'execute_{self.name}'
         method = getattr(self, method_name)

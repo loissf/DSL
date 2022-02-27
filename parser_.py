@@ -269,7 +269,7 @@ class Parser:
 
         elif token.matches(TokenType.KEYWORD, 'this'):
             self.advance()
-            return ParentContextNode(token.position, token)
+            return VarAccessNode(token)
 
         elif token.type == TokenType.NUMBER:
             self.advance()

@@ -41,10 +41,6 @@ class VoidNode(ValueNode):
         super().__init__(token, None)
 
 @dataclass
-class ParentContextNode(Node):
-    token: Token
-
-@dataclass
 class ListNode(Node):
     element_nodes: []
 

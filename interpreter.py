@@ -37,6 +37,7 @@ class Interpreter:
         return Object(context.display_name, context.parent)
 
     def visit_AttributeAccessNode(self, node, context):
+
         object_value = self.visit(node.value_node, context)
 
         if not isinstance(object_value, Object):

@@ -130,6 +130,11 @@ class Object:
     class_name: str
     object_context: Context
 
+    def __init__(self, class_name: str, object_context: Context):
+        self.class_name = class_name
+        self.object_context = object_context
+        self.object_context.symbol_table.set('this', self)
+
     def getAttribute(self, attr):
         return self.object_context.symbol_table.get(attr)
 

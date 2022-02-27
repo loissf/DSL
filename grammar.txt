@@ -58,7 +58,30 @@ $var count = 0
 
 trigger on <event>: <expr>
 
-class Test: function Test(a, b): this.a = 10 end, function get_a(): this.a end end
+class Test: function Test(a, b): void end, function get_a(): this.a end end
+
+class Test:
+    var a = 10,
+    var b = 20,
+    var c = [],
+
+    function Test(name, value):
+        this.c[0] = name,
+        this.c[1] = value
+    end,
+
+    function getName():
+        this.c[0]
+    end,
+
+    function setName(value):
+        this.c[0] = value
+    end,
+
+    function getObjectName():
+        this.name
+    end
+end
 
 function for(start, finish, body): if start < finish: body(), var start = start + 1, for(start, finish, body) end end
 function calc(value_1, op, value_2): if op == "+": value_1 + value_2 else: if op == "-": value_1 - value_2 else: if op == "*": value_1 * value_2 else: if op == "/": value_1 / value_2

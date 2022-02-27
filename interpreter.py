@@ -31,18 +31,13 @@ class Interpreter:
         print(value)
         return None
     '''
-    def visit_ParentContextNode(self, node, context):
-        if context.parent == None:
-            raise TypeError(f"'this' is not defined", node.position)
-        return Object(context.display_name, context.parent)
-
     def visit_AttributeAccessNode(self, node, context):
 
         object_value = self.visit(node.value_node, context)
 
         if not isinstance(object_value, Object):
             raise TypeError(f'{object_value} is not an object', node.position)
-
+        
         attribute_value = self.visit(node.attribute_node, object_value.object_context)
 
         if attribute_value == None:
@@ -106,7 +101,7 @@ class Interpreter:
         body_node = node.body_node
         arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
 
-        function = Function(func_name, body_node, arg_names)
+        function = Function(func_name, body_node, arg_names, context)
 
         if node.func_name_token:
             context.symbol_table.set(func_name, function)

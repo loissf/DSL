@@ -60,12 +60,14 @@ class Callable:
 class Function(Callable):
     body_node: any
     arg_names: []
-
+    context: Context = None
+    
     def execute(self, args, context: Context):
         interpreter = Interpreter()
 
+        call_context = context if self.context == None else self.context
         self.check_args(args, self.arg_names)
-        new_context = self.create_context(args, self.arg_names, context)
+        new_context = self.create_context(args, self.arg_names, call_context)
 
         result = interpreter.visit(self.body_node, new_context)
         return result
@@ -87,17 +89,27 @@ class BuiltInFunction(Callable):
         result = method(new_context)
         return result
 
-    def execute_write(self, context):
+    def execute_write(self, context: Context):
         value = str(context.symbol_table.get('value'))
         value += '\n'
         context.send_output(value)
         # print(value)
     execute_write.arg_names = ['value']
+        
+    def execute_context(self, context: Context):
+        symbol_table = SymbolTable(context.symbol_table)
+        symbol_table.set('variables', f'{context.symbol_table}')
+        symbol_table.set('name', context.display_name)
+        context_object = Object('Context', Context(context.display_name, symbol_table, context))
+        print(f'{context_object} {symbol_table}')
+        return context_object
+    execute_context.arg_names = []
 
     def __repr__(self):
         return f'<built_in_function {self.name}>'
 
 BuiltInFunction.write       = BuiltInFunction('write')
+BuiltInFunction.context     = BuiltInFunction('context')
 
 @dataclass(repr=False)
 class Class(Callable):
@@ -105,20 +117,26 @@ class Class(Callable):
 
     def execute(self, args, context: Context):
         
-        instance_context = Context(self.name, context.symbol_table, context)     # Copy parent context
-        instance_context.symbol_table.remove(self.name)
+        new_symbol_table = SymbolTable(context.symbol_table)
+        instance_context = Context(self.name, new_symbol_table, context)                  
 
         interpreter = Interpreter()                                                 
-        interpreter.visit(self.body_node, context)                                  # execute body_node     # should contain function definitions and parameters ?
+        interpreter.visit(self.body_node, instance_context)                                  
 
-        constructor = instance_context.symbol_table.get(self.name)               # from the class body pick the function with the same name      # this definition overrides class symbol name inside the class
-        if constructor:                                                             # check if has a user-defined constructor
-            if not isinstance(constructor, Function):                               # check if the constructor is a function
+        constructor = instance_context.symbol_table.get(self.name, True)                
+        if constructor:
+            if not isinstance(constructor, Function):
+                raise Exception(f'{constructor} is not a function')
+            constructor.execute(args, instance_context)
+        '''
+        if constructor:                                                              # check if has a user-defined constructor
+            if not isinstance(constructor, Function):                                   # check if the constructor is a function
                 raise Exception((f'{constructor} is not callable'))
             arg_names = constructor.arg_names                                           # get the required arguments for the constructor
             self.check_args(args, arg_names)                                            # check if the class call arguments match
             constructor_context = self.create_context(args, arg_names, context)            # create the context of the future object
             result = constructor.execute(args, constructor_context)                        # constructor shares context with the instance of the future object     # result of the constructor can be ignored
+        '''
         return Object(self.name, instance_context)
         
 

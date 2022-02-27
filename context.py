@@ -6,10 +6,11 @@ class SymbolTable:
         self.symbols = {}
         self.parent = parent
 
-    def get(self, name):
+    def get(self, name, local: bool = False):
         value = self.symbols.get(name, None)
-        if value == None and self.parent:
-            value = self.parent.get(name)
+        if not local:
+            if value == None and self.parent:
+                value = self.parent.get(name)
         return value
 
     def set(self, name, value):
@@ -17,6 +18,12 @@ class SymbolTable:
 
     def remove(self, name):
         del self.symbols[name]
+        
+    def __repr__(self):
+        table = ''
+        for symbol in self.symbols:
+            table += f'{symbol} : {self.symbols.get(symbol)}\n'
+        return f'{table}'
 
 @dataclass
 class Context:
@@ -43,4 +50,7 @@ class Context:
             return self.parent.get_root_context()
         else:
             return self
+
+    def __repr__(self):
+        return f'<{self.display_name}>'
 

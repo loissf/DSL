@@ -7,7 +7,20 @@ def main():
     while True:
         text = input('>>')
 
-        output = shell.run_command(text)
+        if text.startswith('file '):
+            text = text[5:len(text)]
+
+            lines = []
+            with open(text, 'r') as file:
+                lines += file.readlines()
+
+            program = ''
+            for line in lines:
+                program += line
+        else:
+            program = text
+
+        output = shell.run_command(program)
 
         if output:
             print(f'{output}')

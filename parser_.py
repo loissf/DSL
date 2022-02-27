@@ -219,8 +219,8 @@ class Parser:
     def list_element(self):
         attribute = self.attribute()
 
-        # ListAccessNode        identifier[]
-        # ListAsssingNode       identifier[] = expression
+        # ListAccessNode        attribute[]
+        # ListAsssingNode       attribute[] = expression
         #########
         if self.current_token != None and self.current_token.type == TokenType.LSQUARE:
             list_node = attribute

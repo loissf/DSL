@@ -22,16 +22,17 @@ def main():
             return
 
         text = message.content
+        output = None
 
         if text.startswith('$'):
             text = text[1:len(text)]
             print(f'{message.guild}: #{message.channel} >> {text}')
             output = shell.run_command(text)
-            if output:
-                print(f'{message.guild}: #{message.channel} <- {output}')
-                await message.channel.send(output)
         else:
-            pass
+            output = shell.input_text(text)
+        if output:
+            print(f'{message.guild}: #{message.channel} <- {output}')
+            await message.channel.send(output)
 
     client.run(TOKEN)
 

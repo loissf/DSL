@@ -8,6 +8,7 @@ class SymbolTable:
 
     def get(self, name, local: bool = False):
         value = self.symbols.get(name, None)
+
         if not local:
             if value == None and self.parent:
                 value = self.parent.get(name)

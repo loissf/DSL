@@ -115,14 +115,17 @@ class Interpreter:
         return None
 
     def visit_TriggerDefNode(self, node, context):
-        trigger_list = context.get_root_context().symbol_table.parent.get('triggers', True)
+        trigger_list = context.get_root_context().symbol_table.parent.get('@triggers', True)
 
         event = self.visit(node.event, context)
         args = node.args
-        body = node.body_node
 
-        trigger = Trigger(event, args, body)
+        function = Function('<@trigger_function>', node.body_node, [])
+
+        trigger = Trigger(event, args, function)
         trigger_list.appendElement(trigger)
+
+        return None
 
     def visit_ClassDefNode(self, node, context):
         class_name = node.class_name_token.value if node.class_name_token else None

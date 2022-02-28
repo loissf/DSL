@@ -1,7 +1,8 @@
 import context
-import interpreter
+import interpreter as inter
 
 from context import *
+# from interpreter import *
 
 from dataclasses import dataclass
 
@@ -70,7 +71,7 @@ class Function(Callable):
     context: Context = None
     
     def execute(self, args, context: Context):
-        interpreter = Interpreter()
+        interpreter = inter.Interpreter()
 
         call_context = context if self.context == None else self.context
         self.check_args(args, self.arg_names)
@@ -111,12 +112,19 @@ class BuiltInFunction(Callable):
         context.send_output(f'{context.parent.symbol_table}')
     execute_symbols.arg_names = []
 
+    def execute_triggers(self, context: Context):
+        trigger_list = context.get_root_context().symbol_table.parent.get("@triggers").value
+        for trigger in trigger_list:
+            context.send_output(f'{trigger}')
+    execute_triggers.arg_names = []
+
     def __repr__(self):
         return f'<built_in_function {self.name}>'
 
 BuiltInFunction.write       = BuiltInFunction('write')
 BuiltInFunction.context     = BuiltInFunction('context')
 BuiltInFunction.symbols     = BuiltInFunction('symbols')
+BuiltInFunction.triggers    = BuiltInFunction('triggers')
 
 @dataclass(repr=False)
 class Class(Callable):
@@ -127,7 +135,7 @@ class Class(Callable):
         new_symbol_table = SymbolTable(context.symbol_table)
         instance_context = Context(self.name, new_symbol_table, context)                  
 
-        interpreter = Interpreter()                                                 
+        interpreter = inter.Interpreter()                                                 
         interpreter.visit(self.body_node, instance_context)                                  
 
         constructor = instance_context.symbol_table.get(self.name, True)                

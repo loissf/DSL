@@ -391,6 +391,7 @@ class Parser:
         self.advance()
 
         body_node = self.statment()
+        args = args[0] if len(args) == 1 else args
 
         return TriggerDefNode(position, body_node, event, args)
 

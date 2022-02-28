@@ -1,6 +1,10 @@
-from tokens import Token, TokenType
-import string
+import tokens
+
+from tokens import *
+
 from errors import IllegalCharError, SyntaxError
+
+import string
 
 WHITESPACE          = ' \n\t'
 DIGITS              = '0123456789'
@@ -22,7 +26,8 @@ KEYWORDS = [
     'end',
     'class',
     'this',
-    'void'
+    'void',
+    'trigger'
 ]
 
 class Lexer:
@@ -55,6 +60,9 @@ class Lexer:
                 yield self.generate_logic_op()
 
             elif self.current_char == '"':
+                yield self.generate_string()
+
+            elif self.current_char == "'":
                 yield self.generate_string()
                 
             elif self.current_char == '+':
@@ -157,10 +165,11 @@ class Lexer:
     # Generates string token with all characters found between '"' as value
     def generate_string(self):
         string = ''
+        starting_quote = self.current_char
         start_position = self.position
         self.advance()
 
-        while self.current_char != None and self.current_char != '"':
+        while self.current_char != None and self.current_char != starting_quote:
             string += self.current_char
             self.advance()
             if self.current_char == None:

@@ -1,6 +1,10 @@
+import context
+import interpreter
+
+from context import *
+
 from dataclasses import dataclass
-from interpreter import Interpreter
-from context import Context, SymbolTable
+
 
 @dataclass
 class Value:
@@ -31,6 +35,9 @@ class List(Value):
     def setElement(self, index, value):
         self.value[int(index)] = value
 
+    def appendElement(self, value):
+        self.value.append(value)
+
 @dataclass
 class Callable:
     name: str
@@ -47,7 +54,7 @@ class Callable:
         for i in range(len(args)):
             arg_name = arg_names[i]
             arg_value = args[i]
-  
+            
             new_symbol_table.set(arg_name, arg_value)
 
         new_context = Context(self.name, new_symbol_table, parent)
@@ -97,19 +104,19 @@ class BuiltInFunction(Callable):
     execute_write.arg_names = ['value']
         
     def execute_context(self, context: Context):
-        symbol_table = SymbolTable(context.symbol_table)
-        symbol_table.set('variables', f'{context.symbol_table}')
-        symbol_table.set('name', context.display_name)
-        context_object = Object('Context', Context(context.display_name, symbol_table, context))
-        print(f'{context_object} {symbol_table}')
-        return context_object
+        context.send_output(f'{context.parent}')
     execute_context.arg_names = []
+
+    def execute_symbols(self, context: Context):
+        context.send_output(f'{context.parent.symbol_table}')
+    execute_symbols.arg_names = []
 
     def __repr__(self):
         return f'<built_in_function {self.name}>'
 
 BuiltInFunction.write       = BuiltInFunction('write')
 BuiltInFunction.context     = BuiltInFunction('context')
+BuiltInFunction.symbols     = BuiltInFunction('symbols')
 
 @dataclass(repr=False)
 class Class(Callable):
@@ -152,7 +159,7 @@ class Object:
         self.class_name = class_name
         self.object_context = object_context
         self.object_context.symbol_table.set('this', self)
-
+    
     def getAttribute(self, attr):
         return self.object_context.symbol_table.get(attr)
 
@@ -161,3 +168,15 @@ class Object:
 
     def __repr__(self):
         return f'<{self.class_name} object>'
+
+@dataclass
+class Trigger:
+    event: int
+    trigger: any
+    function: Function
+
+    def __repr__(self):
+        event = ''
+        if self.event == 0:
+            event = 'on_message'
+        return f'{event} : {self.trigger} : {self.function}'

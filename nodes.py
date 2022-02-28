@@ -1,5 +1,8 @@
+import tokens
+
+from tokens import *
+
 from dataclasses import dataclass
-from tokens import Token, TokenType
 
 # DEFINITION OF THE ABSTRACT SYNTAX TREE NODES
 # The abstract syntax tree is a node itself, that may have more nodes as parameters
@@ -175,3 +178,10 @@ class CallNode(Node):
 
     def __repr__(self):
         return f'CALL->{self.func_node}(args({self.arg_nodes}))'
+
+@dataclass
+class TriggerDefNode(Node):
+    body_node: Node
+    event: VarAccessNode
+    args: [] = None
+    

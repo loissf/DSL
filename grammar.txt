@@ -50,13 +50,17 @@ func_def    : KEYWORKD:function IDENTIFIER
               LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
               COLON statment
 
+trigger_def : KEYWORD:trigger IDENTIFIER
+              LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
+              COLON statment
+
 class_def   : KEYWORD:class IDENTIFIER COLON
             : statment
 
 
 $var count = 0
 
-trigger on <event>: <expr>
+trigger <event>(): <expr>
 
 class Test: function Test(a, b): void end, function get_a(): this.a end end
 

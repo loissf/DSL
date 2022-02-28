@@ -1,22 +1,35 @@
-from lexer          import Lexer
-from parser_        import Parser
-from interpreter    import Interpreter
-from tokens         import TokenType, Token
-from context        import Context, SymbolTable
+import lexer
+import parser_
+import interpreter
+import context
+
+from lexer import Lexer
+from parser_ import Parser
+from interpreter import Interpreter
+from context import *
+
 from errors         import Error
-from values         import BuiltInFunction
+from values         import BuiltInFunction, List
+
+# BUILT IN FUNCTIONS
+built_ins = SymbolTable()
+
+built_ins.set('write', BuiltInFunction.write)
+built_ins.set('context', BuiltInFunction.context)
+built_ins.set('symbols', BuiltInFunction.symbols)
+
+built_ins.set('triggers', List([]))
+built_ins.set('on_message', 0)
+# BUILT IN FUNCTIONS
 
 class Shell:
 
     def __init__(self):
         # ROOT CONTEXT
-        self.context = Context('<shell>', SymbolTable())
-
-        # BUILT IN FUNCTIONS
-        self.context.symbol_table.set('write', BuiltInFunction.write)
-        self.context.symbol_table.set('context', BuiltInFunction.context)
-        # BUILT IN FUNCTIONS
-    
+        symbol_table = SymbolTable(built_ins)
+        self.context = Context('shell', symbol_table)
+    def print_triggers(self):
+        print(f'{built_ins.get("triggers")}')
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
         try:
@@ -36,6 +49,8 @@ class Shell:
             #error_message = f'{e}'
             #return error_message
 
+    def input_text(self, text):
+        pass
 
     # DEBUG FUNCTIONS
     #######################################

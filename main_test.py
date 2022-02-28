@@ -1,3 +1,5 @@
+import shell
+
 from shell import Shell
 
 def main():

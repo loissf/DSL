@@ -1,5 +1,11 @@
+import nodes
+import context
+import values
+
 from nodes import *
-from context import SymbolTable, Context
+from context import *
+from values import *
+
 from tokens import TypeGroups
 from errors import TypeError
 
@@ -21,7 +27,7 @@ class Interpreter:
 
     def visit_BooleanNode(self, node, context):
         return Boolean(node.value)
-
+    
     def visit_VoidNode(self, node, context):
         return None
     # NOW A BUILT IN FUNCTION
@@ -108,6 +114,16 @@ class Interpreter:
 
         return None
 
+    def visit_TriggerDefNode(self, node, context):
+        trigger_list = context.get_root_context().symbol_table.parent.get('triggers', True)
+
+        event = self.visit(node.event, context)
+        args = node.args
+        body = node.body_node
+
+        trigger = Trigger(event, args, body)
+        trigger_list.appendElement(trigger)
+
     def visit_ClassDefNode(self, node, context):
         class_name = node.class_name_token.value if node.class_name_token else None
         body_node = node.body_node
@@ -193,4 +209,4 @@ class Interpreter:
         except:
             raise TypeError("Runtime math error", node.position)
 
-from values import Number, String, Boolean, Function, List, Callable, Class, Object
+# from values import Number, String, Boolean, Function, List, Callable, Class, Object

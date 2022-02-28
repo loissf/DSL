@@ -1,5 +1,9 @@
+import nodes
+import tokens
+
 from nodes import *
-from tokens import Token, TokenType, TypeGroups
+from tokens import *
+
 from errors import SyntaxError
 
 class Parser:
@@ -176,6 +180,9 @@ class Parser:
         elif self.current_token.matches(TokenType.KEYWORD, 'function'):
             return self.func_def()
 
+        elif self.current_token.matches(TokenType.KEYWORD, 'trigger'):
+            return self.trigger_def()
+
         elif self.current_token.matches(TokenType.KEYWORD, 'class'):
             return self.class_def() 
 
@@ -336,6 +343,56 @@ class Parser:
         body_node = self.statment()
 
         return FuncDefNode(position, body_node, func_name_token, arg_name_tokens)
+
+    def trigger_def(self):
+        event = None
+        args = None
+        body_node = None
+
+        position = self.current_token.position
+        self.advance()
+
+        if self.current_token.type == TokenType.IDENTIFIER:
+            event = VarAccessNode(self.current_token)
+            self.advance()
+            if self.current_token.type != TokenType.LPAREN:
+                raise SyntaxError("Invalid syntax, expected '('", self.current_token.position)
+        else:
+            raise SyntaxError("Invalid syntax, expected event type", self.current_token.position)
+
+        self.advance()
+        args = []
+
+        if self.current_token.type == TokenType.STRING:
+            args.append(self.current_token)
+            self.advance()
+
+            while self.current_token.type == TokenType.COMMA:
+                self.advance()
+
+                if self.current_token.type != TokenType.IDENTIFIER:
+                    raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
+
+                args.append(self.current_token)
+                self.advance()
+
+            if self.current_token.type != TokenType.RPAREN:
+                raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
+        
+        else:
+            if self.current_token.type != TokenType.RPAREN:
+                raise SyntaxError("Invalid syntax, expected identifier or ')'", self.current_token.position)
+
+        self.advance()
+
+        if self.current_token.type != TokenType.COLON:
+            raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+
+        self.advance()
+
+        body_node = self.statment()
+
+        return TriggerDefNode(position, body_node, event, args)
 
     def class_def(self):
         position = self.current_token.position

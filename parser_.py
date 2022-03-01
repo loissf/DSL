@@ -258,10 +258,20 @@ class Parser:
         value = self.value()
         position = self.current_token.position
 
-        if self.current_token.type == TokenType.DOT:
-            self.advance()
-            attribute = self.attribute()
-            return AttributeAccessNode(position, value, attribute)
+        if isinstance(value, VarAccessNode):
+            object_value = value
+            if self.current_token.type == TokenType.DOT:
+
+                self.advance()
+                attribute = self.attribute()
+
+                if self.current_token != None and self.current_token.type == TokenType.EQUALS:
+                    self.advance()
+                    value_node = self.expr()
+
+                    return AttributeAssingNode(position, object_value, attribute, value_node)
+                else:
+                    return AttributeAccessNode(position, object_value, attribute)
 
         return value
 

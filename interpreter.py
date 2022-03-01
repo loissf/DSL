@@ -29,7 +29,7 @@ class Interpreter:
         return Boolean(node.value)
     
     def visit_VoidNode(self, node, context):
-        return None
+        return Null()
     # NOW A BUILT IN FUNCTION
     '''
     def visit_WriteNode(self, node, context):
@@ -37,9 +37,20 @@ class Interpreter:
         print(value)
         return None
     '''
+    def visit_AttributeAssingNode(self, node, context):
+
+        object_value = self.visit(node.object_value, context)
+
+        if not isinstance(object_value, Object):
+            raise TypeError(f'{object_value} is not an object', node.position)
+
+        var_name = node.attribute_node.var_name_token
+
+        self.visit(VarAssingNode(node.position, var_name, node.value_node), object_value.object_context)
+
     def visit_AttributeAccessNode(self, node, context):
 
-        object_value = self.visit(node.value_node, context)
+        object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
             raise TypeError(f'{object_value} is not an object', node.position)
@@ -54,7 +65,6 @@ class Interpreter:
     def visit_VarAccessNode(self, node, context):
         var_name = node.var_name_token.value
         value = context.symbol_table.get(var_name)
-
         if value == None:
             raise TypeError(f'{var_name} is not defined', node.position)
 

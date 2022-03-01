@@ -27,6 +27,12 @@ class Boolean(Value):
     value: bool
 
 @dataclass(repr=False)
+class Null(Value):
+    value: None
+    def __init__(self):
+        self.value = None
+
+@dataclass(repr=False)
 class List(Value):
     value: []
 
@@ -133,10 +139,12 @@ class Class(Callable):
     def execute(self, args, context: Context):
         
         new_symbol_table = SymbolTable(context.symbol_table)
-        instance_context = Context(self.name, new_symbol_table, context)                  
+        instance_context = Context(self.name, new_symbol_table, context)
 
         interpreter = inter.Interpreter()                                                 
-        interpreter.visit(self.body_node, instance_context)                                  
+        interpreter.visit(self.body_node, instance_context)
+
+        new_object = Object(self.name, instance_context)                                 
 
         constructor = instance_context.symbol_table.get(self.name, True)                
         if constructor:
@@ -152,7 +160,7 @@ class Class(Callable):
             constructor_context = self.create_context(args, arg_names, context)            # create the context of the future object
             result = constructor.execute(args, constructor_context)                        # constructor shares context with the instance of the future object     # result of the constructor can be ignored
         '''
-        return Object(self.name, instance_context)
+        return new_object
         
 
     def __repr__(self):

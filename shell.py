@@ -30,7 +30,6 @@ class Shell:
     def __init__(self):
         # ROOT CONTEXT
         symbol_table = SymbolTable(built_ins)
-        print(symbol_table)
         self.context = Context('shell', symbol_table)
 
     # Executes a command and returns either the console output or an error message
@@ -48,9 +47,6 @@ class Shell:
         except Error as e:
             error_message = f'{e}\n{self.pointer_string(command, e.position)}'
             return error_message
-        except Exception as e:
-            error_message = f'{e}'
-            return error_message
 
     def input_text(self, text):
         trigger_list = built_ins.get('@triggers').value
@@ -61,7 +57,7 @@ class Shell:
                         element.function.execute([], self.context)
                         return self.context.get_output()
                     except Error as e:
-                        error_message = f'{e}\n{self.pointer_string(command, e.position)}'
+                        error_message = f'{e}'
                         return error_message
                     except Exception as e:
                         error_message = f'{e}'

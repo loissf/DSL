@@ -3,10 +3,10 @@ import parser_
 import interpreter
 import context
 
-from lexer import Lexer
-from parser_ import Parser
-from interpreter import Interpreter
-from context import *
+from lexer          import Lexer
+from parser_        import Parser
+from interpreter    import Interpreter
+from context        import *
 
 from errors         import Error
 from values         import BuiltInFunction, List

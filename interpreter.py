@@ -2,12 +2,12 @@ import nodes
 import context
 import values
 
-from nodes import *
-from context import *
-from values import *
+from nodes      import *
+from context    import *
+from values     import *
 
-from tokens import TypeGroups
-from errors import TypeError
+from tokens     import TypeGroups
+from errors     import TypeError
 
 class Interpreter:
     

@@ -18,18 +18,28 @@ def main():
 
     @client.event
     async def on_message(message):
+        # Ignore messages from the bot itself
         if message.author == client.user:
             return
 
         text = message.content
         output = None
 
+        # Check if input is a command
+        # Send a command to the shell
         if text.startswith('$'):
             text = text[1:len(text)]
             print(f'{message.guild}: #{message.channel} >> {text}')
             output = shell.run_command(text)
+        
+        # If input is just a message
+        # Send a text input to the shell
         else:
             output = shell.input_text(text)
+            if output:
+                print(f'{message.guild}: #{message.channel} : {text}')
+
+        # Once the message is processed, send any output the shell may have produced
         if output:
             print(f'{message.guild}: #{message.channel} <- {output}')
             await message.channel.send(output)

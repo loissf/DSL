@@ -1,7 +1,7 @@
 import nodes
 import tokens
 
-from nodes import *
+from nodes  import *
 from tokens import *
 
 from errors import SyntaxError
@@ -39,7 +39,7 @@ class Parser:
     def expr(self):
 
         # VoidNode              void
-        #########
+        ######################################################
         if self.current_token.matches(TokenType.KEYWORD, 'void'):
             token = self.current_token
             self.advance()
@@ -47,7 +47,7 @@ class Parser:
         #########
 
         # VarNode               var identifier = expression
-        #########
+        #############################
         if self.current_token.matches(TokenType.KEYWORD, 'var'):
             position = self.current_token.position
             
@@ -64,20 +64,7 @@ class Parser:
 
             value = self.expr()
             return VarAssingNode(position, var_name, value)
-        ##########
-
-        # WriteNode             write expression
-        # Now a built in function
-        ##########
-        '''
-        elif self.current_token.matches(TokenType.KEYWORD, 'write'):
-            position = self.current_token.position
-            self.advance()
-            
-            value = self.expr()
-            return WriteNode(position, value)
-        '''
-        ##########
+        #############################
 
         return self.logic_op()
 
@@ -92,7 +79,7 @@ class Parser:
             self.advance()
             right_node = self.comp_op()
             left_node = BinOpNode(left_node, op_token, right_node)
-        ##########
+        #############################
 
         return left_node
 
@@ -101,23 +88,23 @@ class Parser:
 
         # UnaryOpNode           token arithmetic_operation
         # for 'not' logic operator
-        ##########
+        ######################################################
         if self.current_token != None and self.current_token.matches(TokenType.KEYWORD, 'not'):
             op_token = self.current_token
             self.advance()
             return UnaryOpNode(op_token, self.comp_op())
-        ##########
+        #############################
 
         # BinOpNode             arithmetic_operation token arithmetic_operation
         # for '>' , '<' , '==' , '>=' , '<=' , '!=' comparation operators
-        ##########
+        ######################################################
         elif self.current_token != None and self.current_token.type in TypeGroups.COMPARATION_OP:
 
             op_token = self.current_token
             self.advance()
             right_node = self.arith_op()
             left_node = BinOpNode(left_node, op_token, right_node)
-        ##########
+        #############################
 
         return left_node
 
@@ -126,13 +113,13 @@ class Parser:
 
         # BinOpNode             term token term
         # for '+' , '-' arithmetic operators
-        ##########
+        ######################################################
         while self.current_token != None and self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
             op_token = self.current_token
             self.advance()
             right_node = self.term()
             left_node = BinOpNode(left_node, op_token, right_node)
-        ##########
+        #############################
 
         return left_node
 
@@ -141,13 +128,13 @@ class Parser:
 
         # BinOpNode             factor token factor
         # for '*' , '/' arithmetic operators
-        ##########
+        ######################################################
         while self.current_token != None and self.current_token.type in (TokenType.MULTIPLY, TokenType.DIVIDE):
             op_token = self.current_token
             self.advance()
             right_node = self.factor()
             left_node = BinOpNode(left_node, op_token, right_node)
-        ##########
+        #############################
 
         return left_node
 
@@ -155,16 +142,16 @@ class Parser:
         
         # UnaryOpNode           token factor
         # for '-' arithmetic operator
-        ##########
+        ######################################################
         if self.current_token.type == TokenType.MINUS:
             op_token = self.current_token
             self.advance()
             return UnaryOpNode(op_token, self.factor())
-        ##########
+        #############################
 
         # Check for an entire new expression inside parentheses '( )'
         #                       left_paren expression right_paren
-        ##########
+        ######################################################
         elif self.current_token.type == TokenType.LPAREN:
             self.advance()
             result = self.expr()
@@ -173,10 +160,10 @@ class Parser:
             
             self.advance()
             return result
-        ##########
+        #############################
 
         # Compound statmets if , function definition , list definition , TODO for , while ...                 
-        ##########
+        ######################################################
         elif self.current_token.matches(TokenType.KEYWORD, 'function'):
             return self.func_def()
 
@@ -191,16 +178,16 @@ class Parser:
 
         elif self.current_token.type == TokenType.LSQUARE:
             return self.list_expr()
-        ##########
+        #############################
 
         return self.list_element()
 
     def list_element(self):
         attribute = self.call()
 
-        # ListAccessNode        attribute[]
-        # ListAsssingNode       attribute[] = expression
-        #########
+        # ListAccessNode        call[]
+        # ListAsssingNode       call[] = expression
+        ######################################################
         if self.current_token != None and self.current_token.type == TokenType.LSQUARE:
             list_node = attribute
             index = None
@@ -222,15 +209,15 @@ class Parser:
                     return ListAssingNode(list_node, index, value_node)
                 else:
                     return ListAccessNode(list_node, index)
-        #########
+        #############################
         
         return attribute
 
     def call(self):
         attribute = self.attribute()
 
-        # CallNode              identifier()
-        #########
+        # CallNode              attribute()
+        ######################################################
         if self.current_token != None and self.current_token.type == TokenType.LPAREN:
             func_node = attribute
             arg_nodes = []
@@ -250,7 +237,7 @@ class Parser:
             
                 self.advance()
             return CallNode(func_node, arg_nodes)
-        #########
+        #############################
         
         return attribute
 
@@ -258,6 +245,9 @@ class Parser:
         value = self.value()
         position = self.current_token.position
 
+        # AttributeAccessNode        identifier.attribute
+        # AttributeAsssingNode       identifier.attribute = expression
+        ######################################################
         if isinstance(value, VarAccessNode):
             object_value = value
             if self.current_token.type == TokenType.DOT:
@@ -272,14 +262,15 @@ class Parser:
                     return AttributeAssingNode(position, object_value, attribute, value_node)
                 else:
                     return AttributeAccessNode(position, object_value, attribute)
+        #############################
 
         return value
 
     def value(self):
         token = self.current_token
 
-        # ValueNodes
-        #########
+        # VarAccessNode             identifier
+        ######################################################
         if token.type == TokenType.IDENTIFIER:
             self.advance()
             return VarAccessNode(token)
@@ -287,7 +278,10 @@ class Parser:
         elif token.matches(TokenType.KEYWORD, 'this'):
             self.advance()
             return VarAccessNode(token)
+        #############################
 
+        # ValueNodes
+        ######################################################
         elif token.type == TokenType.NUMBER:
             self.advance()
             return NumberNode(token, token.value)
@@ -303,9 +297,10 @@ class Parser:
         elif token.matches(TokenType.KEYWORD, 'false'):
             self.advance()
             return BooleanNode(token, False)
-        #########
+        #############################
 
     # FunctionDefNode           function identifier(arguments): statment
+    ######################################################################
     def func_def(self):    # TODO initialice function args on top
         position = self.current_token.position
         self.advance()
@@ -354,6 +349,12 @@ class Parser:
 
         return FuncDefNode(position, body_node, func_name_token, arg_name_tokens)
 
+    # TriggerDefNode           trigger event_identifier(arguments): statment
+    # event_identifier are global constants with int values to identify the event type
+    # trigger object is created and stored in @triggers = [] global variable
+    # TODO: trigger event_identifier(logic_op): statment
+    # TODO: equivalent to -> function trigger(message): if logic=op: statment()
+    ######################################################################
     def trigger_def(self):
         event = None
         args = None
@@ -405,6 +406,9 @@ class Parser:
 
         return TriggerDefNode(position, body_node, event, args)
 
+    # ClassDefNode           class identifier: statment
+    # if statment contains function identifier, that function is called when creating the object as a constructor
+    ######################################################################
     def class_def(self):
         position = self.current_token.position
         self.advance()
@@ -425,6 +429,7 @@ class Parser:
         return ClassDefNode(position, body_node, class_name_token)
 
     # IfNode                    if logic_operation: statment (else: statment)?
+    ######################################################################
     def if_expr(self):
         condition = None
         if_case = None
@@ -458,6 +463,7 @@ class Parser:
         return IfNode(position, condition, if_case, None) 
 
     # ListNode                  [ expression (, expression)*? ]
+    ######################################################################
     def list_expr(self):
         element_nodes = []
         
@@ -481,6 +487,7 @@ class Parser:
 
     # Parser entry point, returns the root node of the abstract syntax tree
     # If the only token found is End Of File token return VoidNode aka None value
+    ######################################################################
     def parse(self):
         if self.current_token.type == TokenType.EOF:
             return VoidNode(self.current_token)

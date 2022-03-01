@@ -135,15 +135,7 @@ class UnaryOpNode(Node):
 
     def __repr__(self):
         return f'({self.op_token}, {self.node})'
-# NOW A BUILT IN FUNCTION
-'''
-@dataclass
-class WriteNode(Node):
-    value_node: StringNode
 
-    def __repr__(self):
-        return f'PRINT "{self.value_node}"'
-'''
 @dataclass
 class IfNode(Node):
     condition: any

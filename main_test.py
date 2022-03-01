@@ -21,6 +21,8 @@ def main():
 
                 program = ''
                 for line in lines:
+                    if '#' in line:
+                        line = line[0:line.index('#')]
                     program += line
             else:
                 program = text

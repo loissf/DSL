@@ -193,38 +193,10 @@ class Parser:
             return self.list_expr()
         ##########
 
-        return self.call()
-
-    def call(self):
-        value = self.list_element()
-
-        # CallNode              identifier()
-        #########
-        if self.current_token != None and self.current_token.type == TokenType.LPAREN:
-            func_node = value
-            arg_nodes = []
-            self.advance()
-
-            if self.current_token.type == TokenType.RPAREN:
-                self.advance()
-            else:
-                arg_nodes.append(self.expr())
-
-                while self.current_token.type == TokenType.COMMA:
-                    self.advance()
-                    arg_nodes.append(self.expr())
-
-                if self.current_token.type != TokenType.RPAREN:
-                    raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
-            
-                self.advance()
-            return CallNode(func_node, arg_nodes)
-        #########
-        
-        return value
+        return self.list_element()
 
     def list_element(self):
-        attribute = self.attribute()
+        attribute = self.call()
 
         # ListAccessNode        attribute[]
         # ListAsssingNode       attribute[] = expression
@@ -254,6 +226,34 @@ class Parser:
         
         return attribute
 
+    def call(self):
+        attribute = self.attribute()
+
+        # CallNode              identifier()
+        #########
+        if self.current_token != None and self.current_token.type == TokenType.LPAREN:
+            func_node = attribute
+            arg_nodes = []
+            self.advance()
+
+            if self.current_token.type == TokenType.RPAREN:
+                self.advance()
+            else:
+                arg_nodes.append(self.expr())
+
+                while self.current_token.type == TokenType.COMMA:
+                    self.advance()
+                    arg_nodes.append(self.expr())
+
+                if self.current_token.type != TokenType.RPAREN:
+                    raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
+            
+                self.advance()
+            return CallNode(func_node, arg_nodes)
+        #########
+        
+        return attribute
+
     def attribute(self):
         value = self.value()
         position = self.current_token.position
@@ -263,12 +263,12 @@ class Parser:
             if self.current_token.type == TokenType.DOT:
 
                 self.advance()
-                attribute = self.attribute()
+                attribute = self.call()
 
                 if self.current_token != None and self.current_token.type == TokenType.EQUALS:
                     self.advance()
                     value_node = self.expr()
-
+                    
                     return AttributeAssingNode(position, object_value, attribute, value_node)
                 else:
                     return AttributeAccessNode(position, object_value, attribute)

@@ -107,13 +107,12 @@ TODO : trigger <event>(<logic_op>): <statment>
 class Test: function Test(a, b): void end, function get_a(): this.a end end
 
 class Test:
-    var a = 10,
-    var b = 20,
-    var c = [],
+    var name  = void,
+    var value = void,
 
     function Test(name, value):
-        this.c[0] = name,
-        this.c[1] = value
+        this.name = name,
+        this.value = value
     end,
 
     function getName():

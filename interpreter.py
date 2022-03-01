@@ -45,8 +45,9 @@ class Interpreter:
             raise TypeError(f'{object_value} is not an object', node.position)
 
         var_name = node.attribute_node.var_name_token
+        value = self.visit(node.value_node, context)
 
-        self.visit(VarAssingNode(node.position, var_name, node.value_node), object_value.object_context)
+        self.visit(VarAssingNode(node.position, var_name, value), object_value.object_context)
 
     def visit_AttributeAccessNode(self, node, context):
 
@@ -54,9 +55,9 @@ class Interpreter:
 
         if not isinstance(object_value, Object):
             raise TypeError(f'{object_value} is not an object', node.position)
-        
-        attribute_value = self.visit(node.attribute_node, object_value.object_context)
 
+        attribute_value = self.visit(node.attribute_node, object_value.object_context)
+        
         if attribute_value == None:
             raise TypeError(f'{node.attribute_node.var_name_token.value} is not defined', node.position)
 
@@ -65,6 +66,7 @@ class Interpreter:
     def visit_VarAccessNode(self, node, context):
         var_name = node.var_name_token.value
         value = context.symbol_table.get(var_name)
+ 
         if value == None:
             raise TypeError(f'{var_name} is not defined', node.position)
 
@@ -72,10 +74,10 @@ class Interpreter:
 
     def visit_VarAssingNode(self, node, context):
         var_name = node.var_name_token.value
-        value = self.visit(node.value_node, context)
+        value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
         context.symbol_table.set(var_name, value)
 
-        return None
+        return Null()
 
     def visit_ListNode(self, node, context):
         elements = []
@@ -97,7 +99,7 @@ class Interpreter:
         value = self.visit(node.value_node, context)
         
         list_var.setElement(index.value, value)
-        return None
+        return Null()
 
     def visit_IfNode(self, node, context):
         condition_value = self.visit(node.condition, context)
@@ -110,7 +112,7 @@ class Interpreter:
         else:
             pass
 
-        return None
+        return Null()
 
     def visit_FuncDefNode(self, node, context):
         func_name = node.func_name_token.value if node.func_name_token else None
@@ -122,7 +124,7 @@ class Interpreter:
         if node.func_name_token:
             context.symbol_table.set(func_name, function)
 
-        return None
+        return Null()
 
     def visit_TriggerDefNode(self, node, context):
         trigger_list = context.get_root_context().symbol_table.parent.get('@triggers', True)
@@ -135,7 +137,7 @@ class Interpreter:
         trigger = Trigger(event, args, function)
         trigger_list.appendElement(trigger)
 
-        return None
+        return Null()
 
     def visit_ClassDefNode(self, node, context):
         class_name = node.class_name_token.value if node.class_name_token else None
@@ -146,7 +148,7 @@ class Interpreter:
         if node.class_name_token:
             context.symbol_table.set(class_name, new_class)
         
-        return None
+        return Null()
 
     def visit_CallNode(self, node, context):
         args = []

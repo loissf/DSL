@@ -32,6 +32,9 @@ class Null(Value):
     def __init__(self):
         self.value = None
 
+    def __repr__(self):
+        return f'null'
+
 @dataclass(repr=False)
 class List(Value):
     value: []

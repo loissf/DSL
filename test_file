@@ -1,19 +1,26 @@
 class Test:
-    var a = 10,
-    var b = 20,
-    var c = [],
+    var name  = void,
+    var value = void,
 
-    function Test(name, value):
-        this.c[0] = name,
-        this.c[1] = value
+    function Test(name_, value_):
+        this.name = 'aaaa',
+        this.value = 69
     end,
 
     function getName():
-        this.c[0]
+        this.name
     end,
 
-    function setName(value):
-        this.c[0] = value
+    function setName(val):
+        this.name = val
+    end,
+
+    function getValue():
+        this.value
+    end,
+
+    function setValue(val):
+        this.value = val
     end,
 
     function getObjectName():

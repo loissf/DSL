@@ -158,8 +158,8 @@ class Lexer:
                 token = Token(TokenType.LOWER_EQUALS, start_position)
             elif first_op == '!':
                 token = Token(TokenType.NOT_EQUALS, start_position)
+            self.advance()
 
-        self.advance()
         return token
     
     # Generates string token with all characters found between '"' as value

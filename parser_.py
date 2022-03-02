@@ -101,7 +101,9 @@ class Parser:
         elif self.current_token != None and self.current_token.type in TypeGroups.COMPARATION_OP:
 
             op_token = self.current_token
+
             self.advance()
+
             right_node = self.arith_op()
             left_node = BinOpNode(left_node, op_token, right_node)
         #############################

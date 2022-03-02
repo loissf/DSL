@@ -173,10 +173,11 @@ class Interpreter:
             return Boolean(result)
 
     def visit_BinOpNode(self, node, context):
+        right = self.visit(node.right_node, context)
+        left = self.visit(node.left_node, context)
+        op_token = node.op_token
+
         try:
-            right = self.visit(node.right_node, context)
-            left = self.visit(node.left_node, context)
-            op_token = node.op_token
             
             if op_token.type in TypeGroups.ARITHMETIC_OP:
                 
@@ -222,6 +223,6 @@ class Interpreter:
                 return Boolean(result)
 
         except:
-            raise TypeError("Runtime math error", node.position)
+            raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value}", node.position)
 
 # from values import Number, String, Boolean, Function, List, Callable, Class, Object

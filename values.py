@@ -46,7 +46,7 @@ class List(Value):
 
     def appendElement(self, value):
         self.value.append(value)
-
+# TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
 @dataclass
 class Callable:
     name: str

@@ -138,11 +138,22 @@ class BuiltInFunction(Callable):
     execute_triggers.arg_names = []
 
     def execute_substring(self, context: Context):
-        string  = context.symbol_table.get('string').value
-        start   = context.symbol_table.get('start').value
-        end     = context.symbol_table.get('end').value
+        string = context.symbol_table.get('string').value
+        start  = context.symbol_table.get('start').value
+        end    = context.symbol_table.get('end').value
         return String(string[int(start):int(end)])
     execute_substring.arg_names = ['string', 'start', 'end']
+
+    def execute_contains(self, context: Context):
+        string    = context.symbol_table.get('string').value
+        substring = context.symbol_table.get('substring').value
+        return Boolean(substring in string)
+    execute_contains.arg_names = ['string', 'substring']
+
+    def execute_string(self, context: Context):
+        value = context.symbol_table.get('value').value
+        return String(str(value))
+    execute_string.arg_names = ['value']
 
     def __repr__(self):
         return f'<built_in_function {self.name}>'
@@ -152,6 +163,8 @@ BuiltInFunction.context     = BuiltInFunction('context')
 BuiltInFunction.symbols     = BuiltInFunction('symbols')
 BuiltInFunction.triggers    = BuiltInFunction('triggers')
 BuiltInFunction.substring   = BuiltInFunction('substring')
+BuiltInFunction.contains    = BuiltInFunction('contains')
+BuiltInFunction.string      = BuiltInFunction('string')
 
 @dataclass(repr=False)
 class Class(Callable):

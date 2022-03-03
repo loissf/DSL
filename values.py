@@ -2,6 +2,7 @@ import context
 import interpreter as inter
 
 from context import *
+from errors  import TypeError
 
 from dataclasses import dataclass
 
@@ -64,9 +65,9 @@ class Callable:
 
     def check_args(self, args, arg_names):
         if len(args) > len(arg_names):
-            raise Exception(f'Too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})')
+            raise TypeError(f'{self.name}() too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
         if len(args) < len(arg_names):
-            raise Exception(f'Too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})')
+            raise TypeError(f'{self.name}() too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
 
     def create_context(self, args, arg_names, parent):
         new_symbol_table = SymbolTable(parent.symbol_table)
@@ -120,7 +121,6 @@ class BuiltInFunction(Callable):
         value = str(context.symbol_table.get('value'))
         value += '\n'
         context.send_output(value)
-        # print(value)
     execute_write.arg_names = ['value']
         
     def execute_context(self, context: Context):
@@ -133,10 +133,16 @@ class BuiltInFunction(Callable):
 
     def execute_triggers(self, context: Context):
         trigger_list = context.get_root_context().symbol_table.parent.get("@triggers")
-        # context.send_output(f'{trigger_list}')
         for trigger in trigger_list.value:
             context.send_output(f'{trigger}')
     execute_triggers.arg_names = []
+
+    def execute_substring(self, context: Context):
+        string  = context.symbol_table.get('string').value
+        start   = context.symbol_table.get('start').value
+        end     = context.symbol_table.get('end').value
+        return String(string[int(start):int(end)])
+    execute_substring.arg_names = ['string', 'start', 'end']
 
     def __repr__(self):
         return f'<built_in_function {self.name}>'
@@ -145,6 +151,7 @@ BuiltInFunction.write       = BuiltInFunction('write')
 BuiltInFunction.context     = BuiltInFunction('context')
 BuiltInFunction.symbols     = BuiltInFunction('symbols')
 BuiltInFunction.triggers    = BuiltInFunction('triggers')
+BuiltInFunction.substring   = BuiltInFunction('substring')
 
 @dataclass(repr=False)
 class Class(Callable):

@@ -18,6 +18,7 @@ built_ins.set('write', BuiltInFunction.write)
 built_ins.set('context', BuiltInFunction.context)
 built_ins.set('symbols', BuiltInFunction.symbols)
 built_ins.set('triggers', BuiltInFunction.triggers)
+built_ins.set('substring', BuiltInFunction.substring)
 
 # BUILT IN FUNCTIONS
 
@@ -49,7 +50,10 @@ class Shell:
             result = interpreter.visit(ast, self.context)
             return self.context.get_output()
         except Error as e:
-            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+            if e.position:
+                error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+            else:
+                error_message = f'{e}'
             return error_message
         except Exception as e:
             error_message = f'{e}'
@@ -139,7 +143,7 @@ class Shell:
     # May not work with long or multiline statmets
     def pointer_string(self, text, position):
         whitespace = [' ']
-        pointer = whitespace * (position.character-1) + ['^'] + whitespace * (len(text) - position.character)
+        pointer = whitespace * (position.character-1 + len(str(position.line))) + ['^']
         pointer = ''.join(pointer)
 
         lines = text.split('\n')

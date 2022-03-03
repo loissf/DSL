@@ -32,7 +32,7 @@ def main():
             print(f'{message.guild}: #{message.channel} >> {text}')
             output = shell.run_command(text)
 
-        if text.startswith('```') and text.endswith('```'):
+        elif text.startswith('```') and text.endswith('```'):
             text = text[3:-3]
             if text.startswith('dsl'):
                 text = text[3:len(text)]

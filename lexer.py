@@ -181,7 +181,18 @@ class Lexer:
         self.advance()
 
         while self.current_char != None and self.current_char != starting_quote:
-            string += self.current_char
+            if self.current_char == '\\':
+                self.advance()
+                if self.current_char == 'n':
+                    string += '\n'
+                elif self.current_char == 't':
+                    string += '\t'
+                elif self.current_char == '\\':
+                    string += '\\'
+                else:
+                    raise SyntaxError('Expected \\n , \\t , \\', self.position)
+            else:
+                string += self.current_char
             self.advance()
             if self.current_char == None:
                 raise SyntaxError('Unclosed string literal', start_position)

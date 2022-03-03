@@ -13,6 +13,17 @@ class Value:
     def __repr__(self):
         return f'{self.value}'
 
+    def wrap(self):
+        value_type = type(self.value)
+        if value_type == float:
+            return Number(self.value)
+        elif value_type == str:
+            return String(self.value)
+        elif value_type == bool:
+            return Boolean(self.value)
+        elif self.value == None:
+            return Null() 
+
 @dataclass(repr=False)
 class Number(Value):
     value: float

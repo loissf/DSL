@@ -31,11 +31,18 @@ def main():
             text = text[1:len(text)]
             print(f'{message.guild}: #{message.channel} >> {text}')
             output = shell.run_command(text)
+
+        if text.startswith('```') and text.endswith('```'):
+            text = text[3:-3]
+            if text.startswith('dsl'):
+                text = text[3:len(text)]
+                print(f'{message.guild}: #{message.channel} >> code block:\n{text}')
+                output = shell.run_command(text)
         
         # If input is just a message
         # Send a text input to the shell
         else:
-            output = shell.input_text(text)
+            output = shell.input_text(text, message.author.name)
             if output:
                 print(f'{message.guild}: #{message.channel} : {text}')
 

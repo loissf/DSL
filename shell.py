@@ -55,7 +55,7 @@ class Shell:
             error_message = f'{e}'
             return error_message
 
-    def input_text(self, text):
+    def input_text(self, text, author = None, context = None):
         trigger_list = built_ins.get('@triggers').value
         for element in trigger_list:
             args = []           # python type values
@@ -65,11 +65,12 @@ class Shell:
                 if element.event == 0:
                     message_class = self.context.symbol_table.get('Message') # TODO: load core inside built_ins
                     message_object = self.execute_call(message_class,
-                                                       [text, 'author', 'context'], 
+                                                       [text, author, context],
                                                        self.context)
                     wrapped_args.append(message_object)
                 
                 self.execute_call(element.function, args, self.context, wrapped_args)
+                # print(element.function.body_node) # check trigger structure
 
                 return self.context.get_output()
 
@@ -130,8 +131,8 @@ class Shell:
         if not wrapped_args:
             wrapped_args = []
         for arg in args:
-            wrapped_args.append(Value(arg))
-
+            value = Value(arg)
+            wrapped_args.append(value.wrap())
         return function.execute(wrapped_args, context)
 
     # Returns the given text with a pointer towards the character in the given position

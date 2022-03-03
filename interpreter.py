@@ -131,13 +131,20 @@ class Interpreter:
 
     def visit_TriggerDefNode(self, node, context):
         trigger_list = context.get_root_context().symbol_table.parent.get('@triggers', True)
-
+    
         event = self.visit(node.event, context)
-        args = node.args
 
-        function = Function('<@trigger_function>', node.body_node, [])
+        args = []
+        if event == 0: # on_message TODO: constant values
+            args = ['message']
+        elif event == 1:
+            pass       # on_event   TODO: other event types in this pattern
+        else:
+            pass
+        
+        function = Function('@trigger_function', node.body_node, args)
 
-        trigger = Trigger(event, args, function)
+        trigger = Trigger(event, function)
         trigger_list.appendElement(trigger)
 
         return Null()
@@ -162,7 +169,7 @@ class Interpreter:
         
         for arg_node in node.arg_nodes:
             args.append(self.visit(arg_node, context))
-
+            
         return function.execute(args, context)
             
     def visit_UnaryOpNode(self, node, context):

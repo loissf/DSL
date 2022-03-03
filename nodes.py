@@ -190,5 +190,4 @@ class CallNode(Node):
 class TriggerDefNode(Node):
     body_node: Node
     event: VarAccessNode
-    args: [] = None
     

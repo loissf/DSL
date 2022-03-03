@@ -121,8 +121,9 @@ class BuiltInFunction(Callable):
     execute_symbols.arg_names = []
 
     def execute_triggers(self, context: Context):
-        trigger_list = context.get_root_context().symbol_table.parent.get("@triggers").value
-        for trigger in trigger_list:
+        trigger_list = context.get_root_context().symbol_table.parent.get("@triggers")
+        # context.send_output(f'{trigger_list}')
+        for trigger in trigger_list.value:
             context.send_output(f'{trigger}')
     execute_triggers.arg_names = []
 
@@ -190,11 +191,10 @@ class Object:
 @dataclass
 class Trigger:
     event: int
-    trigger: any
     function: Function
 
     def __repr__(self):
         event = ''
         if self.event == 0:
             event = 'on_message'
-        return f'{event} : {self.trigger} : {self.function}'
+        return f'{event} : {self.function}'

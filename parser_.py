@@ -378,7 +378,8 @@ class Parser:
     def trigger_def(self):
         event           = None
         args            = None
-        body_node       = None
+        function_node   = None
+        condition_node  = None
 
         position = self.current_token.position
         self.advance()
@@ -390,29 +391,13 @@ class Parser:
                 raise SyntaxError("Invalid syntax, expected '('", self.current_token.position)
         else:
             raise SyntaxError("Invalid syntax, expected event type", self.current_token.position)
-
-        self.advance()
-        args = []
-
-        if self.current_token.type == TokenType.STRING:
-            args.append(self.current_token)
-            self.advance()
-
-            while self.current_token.type == TokenType.COMMA:
-                self.advance()
-
-                if self.current_token.type != TokenType.IDENTIFIER:
-                    raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
-
-                args.append(self.current_token)
-                self.advance()
-
-            if self.current_token.type != TokenType.RPAREN:
-                raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
         
-        else:
-            if self.current_token.type != TokenType.RPAREN:
-                raise SyntaxError("Invalid syntax, expected identifier or ')'", self.current_token.position)
+        self.advance()
+
+        condition_node = self.logic_op()
+
+        if self.current_token.type != TokenType.RPAREN:
+                raise SyntaxError("Invalid syntax, expected ')'", self.current_token.position)
 
         self.advance()
 
@@ -421,10 +406,11 @@ class Parser:
 
         self.advance()
 
-        body_node = self.statment()
-        args = args[0] if len(args) == 1 else args
+        function_node = self.statment()
+        
+        body_node = IfNode(position, condition_node, function_node)
 
-        return TriggerDefNode(position, body_node, event, args)
+        return TriggerDefNode(position, body_node, event)
 
     # ClassDefNode           class identifier: statment
     # if statment contains function identifier, that function is called when creating the object as a constructor

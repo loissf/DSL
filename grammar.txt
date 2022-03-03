@@ -1,4 +1,4 @@
-statment    : expr ((COMMA expr)* KEYWORD)? end
+statment    : expr ((COMMA expr)*)? KEYWORD:end
 
 expression  : KEYWORD:var IDENTIFIER (EQUALS expression)?
             : KEYWORD:write expression
@@ -68,27 +68,27 @@ TODO : trigger <event>(<logic_op>): <statment>
 
             dsl 
             class Trigger:
-                var function = void
-                var condition = void
-                event_type = void
+                var function = void,
+                var condition = void,
+                event_type = void,
 
                 function Trigger(function, condition, type):
-                    this.function = function
-                    this.condition = condition
+                    this.function = function,
+                    this.condition = condition,
                     this.type = type
-                end
-            end
+                end,
+            end,
 
             class Message:
-                var content = void
-                var author = void
-                var context = void aka server and chat
+                var content = void,
+                var author = void,
+                var context = void aka server and chat,
 
                 funtion Message(content, author, context):
-                    this.content = content
-                    this.author = author
-                    this.context = context
-                end
+                    this.content = content,
+                    this.author = author,
+                    this.context = context,
+                end,
             end
             dsl
 

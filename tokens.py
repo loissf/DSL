@@ -25,7 +25,8 @@ class TokenType(Enum):
     COLON           = 19    # :
     COMMA           = 20    # ,
     DOT             = 21    # .
-    EOF             = 22    # end of file
+    EOL             = 22    # end of line
+    EOF             = 23    # end of file
 
 # Groups of token types that are parsed together in the same node
 @dataclass

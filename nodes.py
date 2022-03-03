@@ -48,7 +48,10 @@ class ListNode(Node):
     element_nodes: []
 
     def __repr__(self):
-        return f'LIST{self.element_nodes}'
+        elements = ''
+        for element in self.element_nodes:
+            elements += f'{element},\n'
+        return f'LIST[\n{elements}]'
 
 @dataclass
 class VarAccessNode(Node):
@@ -74,11 +77,17 @@ class AttributeAccessNode(Node):
     object_value: VarAccessNode
     attribute_node: VarAccessNode
 
+    def __repr__(self):
+        return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]'
+
 @dataclass
 class AttributeAssingNode(Node):
     object_value: VarAccessNode
     attribute_node: VarAccessNode
     value_node: Node
+
+    def __repr__(self):
+        return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]<-{self.value_node}'
 
 @dataclass(repr=False)
 class ListAccessNode(Node):
@@ -153,7 +162,7 @@ class FuncDefNode(Node):
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
-        return f'{func_name}<-FUNCTION(args({self.arg_name_tokens}) body({self.body_node}))'
+        return f'FUNCTION->{func_name} (args({self.arg_name_tokens}) body({self.body_node}))'
 
 @dataclass
 class ClassDefNode(Node):
@@ -162,7 +171,7 @@ class ClassDefNode(Node):
 
     def __repr__(self):
         class_name = f'{self.class_name_token.value}' if self.class_name_token != None else '<anonymus>'
-        return f'{class_name}<-CLASS body({self.body_node}))'
+        return f'CLASS->{class_name} body({self.body_node}))'
 
 @dataclass
 class CallNode(Node):

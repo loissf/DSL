@@ -22,17 +22,35 @@ class Parser:
             self.current_token = None      
 
     def statment(self):
+        
+        while self.current_token.type == TokenType.EOL:
+                self.advance()
 
         position = self.current_token.position
         expressions = []
         expressions.append(self.expr())
 
         while self.current_token != None and not ( self.current_token.matches(TokenType.KEYWORD, 'end') or self.current_token.type == TokenType.EOF ):
-            if self.current_token.type != TokenType.COMMA:
+            
+            if not ( self.current_token.type == TokenType.COMMA or self.current_token.type == TokenType.EOL ):
                 raise SyntaxError("Invalid syntax, expected ',' or end", self.current_token.position)
+
+            if self.current_token.type == TokenType.COMMA:
+                self.advance()
+            while self.current_token.type == TokenType.EOL:
+                self.advance()
+            if not self.current_token.matches(TokenType.KEYWORD, 'end'):
+                expressions.append(self.expr())
+            else:
+                # self.advance()
+                pass # Possible SyntaxError("Invalid syntax, statment")
+
+        while self.current_token.type == TokenType.EOL:
             self.advance()
-            expressions.append(self.expr())
-        self.advance()
+        if self.current_token.matches(TokenType.KEYWORD, 'end'):
+            self.advance()
+        elif not self.current_token.type == TokenType.EOF:
+            raise SyntaxError("Invalid syntax, expected end", self.current_token.position)
 
         return ListNode(position, expressions)
 
@@ -358,9 +376,9 @@ class Parser:
     # TODO: equivalent to -> function trigger(message): if logic=op: statment()
     ######################################################################
     def trigger_def(self):
-        event = None
-        args = None
-        body_node = None
+        event           = None
+        args            = None
+        body_node       = None
 
         position = self.current_token.position
         self.advance()
@@ -433,9 +451,9 @@ class Parser:
     # IfNode                    if logic_operation: statment (else: statment)?
     ######################################################################
     def if_expr(self):
-        condition = None
-        if_case = None
-        else_case = None
+        condition   = None
+        if_case     = None
+        else_case   = None
 
         position = self.current_token.position
         
@@ -496,7 +514,7 @@ class Parser:
 
         result = self.statment()
 
-        if self.current_token:
-            raise SyntaxError("Invalid syntax", self.current_token.position)
+        if not self.current_token.type == TokenType.EOF:
+            raise SyntaxError(f"Invalid syntax {result}", self.current_token.position)
 
         return result

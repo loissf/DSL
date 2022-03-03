@@ -15,21 +15,11 @@ def main():
             if text.startswith('file '):
                 text = text[5:len(text)]
 
-                lines = []
-                with open(text, 'r') as file:
-                    lines += file.readlines()
-
-                program = ''
-                for line in lines:
-                    if '#' in line:
-                        line = line[0:line.index('#')]
-                    program += line
+                output = shell.open_file(text)      # user input = $file <path>
             else:
-                program = text
-
-            output = shell.run_command(program)
+                output = shell.run_command(text)    # user input = $expression
         else:
-            output = shell.input_text(text)
+            output = shell.input_text(text)         # user input = message
 
         if output:
             print(f'{output}')

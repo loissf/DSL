@@ -19,6 +19,9 @@ class Interpreter:
         method = getattr(self, f'visit_{type(node).__name__}')
         return method(node, context)
 
+    def visit_NoneType(self, node, context):
+        return None
+
     def visit_NumberNode(self, node, context):
         return Number(node.value)
 
@@ -142,7 +145,7 @@ class Interpreter:
     def visit_ClassDefNode(self, node, context):
         class_name = node.class_name_token.value if node.class_name_token else None
         body_node = node.body_node
-
+        
         new_class = Class(class_name, body_node)
 
         if node.class_name_token:

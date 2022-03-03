@@ -53,9 +53,9 @@ class Callable:
 
     def check_args(self, args, arg_names):
         if len(args) > len(arg_names):
-            raise Exception(f'Too many arguments, expected {len(arg_names)} but {len(args)} where given')
+            raise Exception(f'Too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})')
         if len(args) < len(arg_names):
-            raise Exception(f'Too few arguments, expected {len(arg_names)} but {len(args)} where given')
+            raise Exception(f'Too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})')
 
     def create_context(self, args, arg_names, parent):
         new_symbol_table = SymbolTable(parent.symbol_table)

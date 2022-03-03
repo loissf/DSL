@@ -31,6 +31,7 @@ class Shell:
         # ROOT CONTEXT
         symbol_table = SymbolTable(built_ins)
         self.context = Context('shell', symbol_table)
+        self.open_file('core.dsl')
 
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
@@ -45,7 +46,10 @@ class Shell:
             result = interpreter.visit(ast, self.context)
             return self.context.get_output()
         except Error as e:
-            error_message = f'{e}\n{self.pointer_string(command, e.position)}'
+            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+            return error_message
+        except Exception as e:
+            error_message = f'{e}'
             return error_message
 
     def input_text(self, text):
@@ -63,6 +67,21 @@ class Shell:
                         error_message = f'{e}'
                         return error_message
 
+    def open_file(self, path):
+        lines = []
+        with open(path, 'r') as file:
+            if file.name.split('.')[1] == 'dsl':
+                lines += file.readlines()
+                program = ''
+                for line in lines:
+                    if '#' in line:
+                        line = line[0:line.index('#')]
+                    program += line
+                return self.run_command(program)
+            else:
+                text = file.read()
+                return self.input_text(text)
+
     # DEBUG FUNCTIONS
     #######################################
     # Returns the string of tokens
@@ -72,7 +91,7 @@ class Shell:
             tokens = lexer.generate_tokens()
             return list(tokens)
         except Error as e:
-            error_message = f'{e}\n{self.pointer_string(command, e.position)}'
+            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
     
     # Returns the abstract syntax tree
@@ -85,7 +104,7 @@ class Shell:
             ast = parser.parse()
             return ast
         except Error as e:
-            error_message = f'{e}\n{self.pointer_string(command, e.position)}'
+            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
     #########################################
 
@@ -93,6 +112,13 @@ class Shell:
     # May not work with long or multiline statmets
     def pointer_string(self, text, position):
         whitespace = [' ']
-        pointer = whitespace * (position-1) + ['^'] + whitespace * (len(text) - position)
+        pointer = whitespace * (position.character-1) + ['^'] + whitespace * (len(text) - position.character)
         pointer = ''.join(pointer)
-        return f'{text}\n{pointer}'
+
+        lines = text.split('\n')
+        lines[position.line] += f'\n{pointer}'
+
+        result = ''
+        for i in range(len(lines)):
+            result += f'{i}  {lines[i]}\n'
+        return result

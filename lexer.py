@@ -6,7 +6,7 @@ from errors import IllegalCharError, SyntaxError
 
 import string
 
-WHITESPACE          = ' \n\t'
+WHITESPACE          = ' \t'
 DIGITS              = '0123456789'
 LOGIC_OP            = '=!><'
 LETTERS             = string.ascii_letters
@@ -30,16 +30,21 @@ KEYWORDS = [
     'trigger'
 ]
 
+@dataclass
+class Position:
+    character: int
+    line:      int
+
 class Lexer:
     def __init__(self, text):
         self.text = iter(text)
-        self.position = -1
+        self.position = Position(-1, 0)
         self.advance()
 
     def advance(self):
         try:
             self.current_char = next(self.text)
-            self.position += 1
+            self.position.character += 1
         except StopIteration:
             self.current_char = None
 
@@ -108,6 +113,12 @@ class Lexer:
             elif self.current_char == '.':
                 self.advance()
                 yield Token(TokenType.DOT, self.position)
+
+            elif self.current_char == '\n':
+                self.position.line += 1
+                self.position.character = -1
+                self.advance()
+                yield Token(TokenType.EOL, self.position)
                 
             else:
                 char = self.current_char

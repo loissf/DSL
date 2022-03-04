@@ -24,8 +24,13 @@ built_ins.set('string', BuiltInFunction.string)
 
 # BUILT IN FUNCTIONS
 
-built_ins.set('@triggers', List([]))
+
+# GLOBAL VARIABLES  
+
+built_ins.set('@triggers', List([]))    # @triggers cant be accessed by users, due to @ raising IllegalCharError
 built_ins.set('on_message', 0)
+
+# GLOBAL VARIABLES
 
 
 class Shell:
@@ -61,6 +66,7 @@ class Shell:
             error_message = f'{e}'
             return error_message
 
+    # Checks the trigger list with the current message and executes the matching ones
     def input_text(self, text, author = None, context = None):
         trigger_list = built_ins.get('@triggers').value
         for element in trigger_list:
@@ -88,6 +94,8 @@ class Shell:
         if self.context.output:
             return self.context.get_output()
 
+    # Opens file, if its extension matches .dsl, executes its contents
+    # otherwise reads it as text aka console input
     def open_file(self, path):
         lines = []
         with open(path, 'r') as file:
@@ -103,9 +111,21 @@ class Shell:
                 text = file.read()
                 return self.input_text(text)
 
+    # Calls a callable type checking is type and wrapping its arguments into dsl values
+    # Can receive already wrapped args optionally
+    def execute_call(self, function, args, context, wrapped_args = None):
+        if not isinstance(function, Callable):
+            raise Error((f'{function} is not callable'))
+
+        if not wrapped_args:
+            wrapped_args = []
+        for arg in args:
+            value = Value(arg)
+            wrapped_args.append(value.wrap())
+        return function.execute(wrapped_args, context)
+
     # DEBUG FUNCTIONS
     #######################################
-
     # Returns the string of tokens
     def tokenize_command(self, command):
         try:
@@ -128,19 +148,7 @@ class Shell:
         except Error as e:
             error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
-
     #########################################
-
-    def execute_call(self, function, args, context, wrapped_args = None):
-        if not isinstance(function, Callable):
-            raise Error((f'{function} is not callable'))
-
-        if not wrapped_args:
-            wrapped_args = []
-        for arg in args:
-            value = Value(arg)
-            wrapped_args.append(value.wrap())
-        return function.execute(wrapped_args, context)
 
     # Returns the given text with a pointer towards the character in the given position
     # May not work with long or multiline statmets

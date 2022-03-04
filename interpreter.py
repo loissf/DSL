@@ -20,10 +20,13 @@ class Interpreter:
         return method(node, context)
 
     def visit_NoneType(self, node, context):
-        return None
+        return None         # A visit to this node probably means something went wrong, otherwise Nonetype value should be wrapped in a Null type
 
-    def visit_NumberNode(self, node, context):
-        return Number(node.value)
+    def visit_IntegerNode(self, node, context):
+        return Integer(node.value)
+
+    def visit_FloatNode(self, node, context):
+        return Float(node.value)
 
     def visit_StringNode(self, node, context):
         return String(node.value)
@@ -33,15 +36,8 @@ class Interpreter:
     
     def visit_VoidNode(self, node, context):
         return Null()
-    # NOW A BUILT IN FUNCTION
-    '''
-    def visit_WriteNode(self, node, context):
-        value = self.visit(node.value_node, context)
-        print(value)
-        return None
-    '''
-    def visit_AttributeAssingNode(self, node, context):
 
+    def visit_AttributeAssingNode(self, node, context):
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
@@ -53,7 +49,6 @@ class Interpreter:
         self.visit(VarAssingNode(node.position, var_name, value), object_value.object_context)
 
     def visit_AttributeAccessNode(self, node, context):
-
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
@@ -189,50 +184,44 @@ class Interpreter:
 
         try:
             
-            if op_token.type in TypeGroups.ARITHMETIC_OP:
-                
-                result: float
+            result = None
 
-                if op_token.type == TokenType.PLUS:
-                    result = left.value + right.value
-                elif op_token.type == TokenType.MINUS:
-                    result = left.value - right.value
-                elif op_token.type == TokenType.MULTIPLY:
-                    result = left.value * right.value
-                elif op_token.type == TokenType.DIVIDE:
-                    if right.value == 0:
-                        raise ZeroDivisionError("Division by zero", node.right_node.position)
-                    result = left.value / right.value
+            # ARITHMETIC OPERATIONS
+            if op_token.type == TokenType.PLUS:
+                result = left.value + right.value
+            elif op_token.type == TokenType.MINUS:
+                result = left.value - right.value
+            elif op_token.type == TokenType.MULTIPLY:
+                result = left.value * right.value
+            elif op_token.type == TokenType.DIVIDE:
+                if right.value == 0:
+                    raise ZeroDivisionError("Division by zero", node.right_node.position)
+                result = left.value / right.value
 
-                return Number(result)
+            # COMPARATION OPERATIONS
+            elif op_token.type == TokenType.DOUBLE_EQUALS:
+                result = left.value == right.value
+            elif op_token.type == TokenType.NOT_EQUALS:
+                result = left.value != right.value
+            elif op_token.type == TokenType.GREATER:
+                result = left.value > right.value
+            elif op_token.type == TokenType.GREATER_EQUALS:
+                result = left.value >= right.value
+            elif op_token.type == TokenType.LOWER:
+                result = left.value < right.value
+            elif op_token.type == TokenType.LOWER_EQUALS:
+                result = left.value <= right.value
 
-            elif op_token.type in TypeGroups.COMPARATION_OP:
-                
-                result: bool
-
-                if op_token.type == TokenType.DOUBLE_EQUALS:
-                    result = left.value == right.value
-                elif op_token.type == TokenType.NOT_EQUALS:
-                    result = left.value != right.value
-                elif op_token.type == TokenType.GREATER:
-                    result = left.value > right.value
-                elif op_token.type == TokenType.GREATER_EQUALS:
-                    result = left.value >= right.value
-                elif op_token.type == TokenType.LOWER:
-                    result = left.value < right.value
-                elif op_token.type == TokenType.LOWER_EQUALS:
-                    result = left.value <= right.value
-
-                return Boolean(result)
-
+            # LOGIC OPERATIONS
             elif op_token.matches(TokenType.KEYWORD, 'and'):
                 result = left.value and right.value
-                return Boolean(result)
             elif op_token.matches(TokenType.KEYWORD, 'or'):
                 result = left.value or right.value
-                return Boolean(result)
 
-        except:
-            raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value}", node.position)
+            # Wrapping the result in the corresponding value type
+            return Value(result).wrap()
+            
+        except Exception as e:
+            raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value} \n{e}", node.position)
 
 # from values import Number, String, Boolean, Function, List, Callable, Class, Object

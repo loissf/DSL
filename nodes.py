@@ -26,7 +26,11 @@ class ValueNode(Node):
         return f'{self.token.value}'
 
 @dataclass(repr=False, init=False)
-class NumberNode(ValueNode):
+class IntegerNode(ValueNode):
+    value: int
+
+@dataclass(repr=False, init=False)
+class FloatNode(ValueNode):
     value: float
 
 @dataclass(repr=False, init=False)
@@ -92,9 +96,9 @@ class AttributeAssingNode(Node):
 @dataclass(repr=False)
 class ListAccessNode(Node):
     list_node: VarAccessNode
-    index_node: NumberNode
+    index_node: IntegerNode
 
-    def __init__(self, list_node: VarAccessNode, index_node: NumberNode):
+    def __init__(self, list_node: VarAccessNode, index_node: IntegerNode):
         super().__init__(list_node.position)
         self.list_node = list_node
         self.index_node = index_node
@@ -105,10 +109,10 @@ class ListAccessNode(Node):
 @dataclass(repr=False)
 class ListAssingNode(Node):
     list_node: VarAccessNode
-    index_node: NumberNode
+    index_node: IntegerNode
     value_node: Node
 
-    def __init__(self, list_node: VarAccessNode, index_node: NumberNode, value_node: Node):
+    def __init__(self, list_node: VarAccessNode, index_node: IntegerNode, value_node: Node):
         super().__init__(list_node.position)
         self.list_node = list_node
         self.index_node = index_node

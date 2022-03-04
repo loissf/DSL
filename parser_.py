@@ -302,9 +302,13 @@ class Parser:
 
         # ValueNodes
         ######################################################
-        elif token.type == TokenType.NUMBER:
+        elif token.type == TokenType.INT:
             self.advance()
-            return NumberNode(token, token.value)
+            return IntegerNode(token, token.value)
+        
+        elif token.type == TokenType.FLOAT:
+            self.advance()
+            return FloatNode(token, token.value)
 
         elif token.type == TokenType.STRING:
             self.advance()
@@ -321,7 +325,11 @@ class Parser:
 
     # FunctionDefNode           function identifier(arguments): statment
     ######################################################################
-    def func_def(self):    # TODO initialice function args on top
+    def func_def(self):
+        func_name_token = None
+        arg_name_tokens = None
+        body_node       = None
+
         position = self.current_token.position
         self.advance()
 
@@ -416,6 +424,9 @@ class Parser:
     # if statment contains function identifier, that function is called when creating the object as a constructor
     ######################################################################
     def class_def(self):
+        class_name_token = None
+        body_node        = None
+
         position = self.current_token.position
         self.advance()
 

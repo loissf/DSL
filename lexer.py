@@ -143,7 +143,10 @@ class Lexer:
             number += self.current_char
             self.advance()
 
-        return Token(TokenType.NUMBER, start_position, float(number))
+        if decimal_point_count > 0:
+            return Token(TokenType.FLOAT, start_position, float(number))
+        else:
+            return Token(TokenType.INT, start_position, int(number))
 
     # Generates either double char or single char logic operator, or equals token
     def generate_logic_op(self):

@@ -6,7 +6,7 @@ from errors  import TypeError
 
 from dataclasses import dataclass
 
-
+# Parent class for base types that just hold a value
 @dataclass
 class Value:
     value: any
@@ -14,10 +14,13 @@ class Value:
     def __repr__(self):
         return f'{self.value}'
 
+    # Method that returns the value wrapped in the proper vale type     # TODO: list type
     def wrap(self):
         value_type = type(self.value)
-        if value_type == float:
-            return Number(self.value)
+        if value_type == int:
+            return Integer(self.value)
+        elif value_type == float:
+            return Float(self.value)
         elif value_type == str:
             return String(self.value)
         elif value_type == bool:
@@ -26,7 +29,11 @@ class Value:
             return Null() 
 
 @dataclass(repr=False)
-class Number(Value):
+class Integer(Value):
+    value: float
+
+@dataclass(repr=False)
+class Float(Value):
     value: float
 
 @dataclass(repr=False)
@@ -37,6 +44,7 @@ class String(Value):
 class Boolean(Value):
     value: bool
 
+# Null type value, holds None and doesnt require parameters to construct
 @dataclass(repr=False)
 class Null(Value):
     value: None
@@ -46,6 +54,7 @@ class Null(Value):
     def __repr__(self):
         return f'null'
 
+# Type of value that stores a list of elements, impelements methods to get, set and append elements
 @dataclass(repr=False)
 class List(Value):
     value: []
@@ -58,7 +67,10 @@ class List(Value):
 
     def appendElement(self, value):
         self.value.append(value)
+
 # TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
+
+# Parent class for all types that can be called with identifier() syntax
 @dataclass
 class Callable:
     name: str
@@ -84,6 +96,7 @@ class Callable:
     def execute(self, args, context: Context):
         pass
 
+# User defined function
 @dataclass(repr=False)
 class Function(Callable):
     body_node: any
@@ -103,6 +116,7 @@ class Function(Callable):
     def __repr__(self):
         return f'<function {self.name}>'
 
+# Built in functions
 @dataclass(repr=False)
 class BuiltInFunction(Callable):
 
@@ -166,6 +180,7 @@ BuiltInFunction.substring   = BuiltInFunction('substring')
 BuiltInFunction.contains    = BuiltInFunction('contains')
 BuiltInFunction.string      = BuiltInFunction('string')
 
+# User defined class, calling a class returns an object instance of the class
 @dataclass(repr=False)
 class Class(Callable):
     body_node: any
@@ -200,6 +215,7 @@ class Class(Callable):
     def __repr__(self):
         return f'<class {self.name}>'
 
+# Intance of a class
 @dataclass(repr=False)
 class Object:
     class_name: str
@@ -219,6 +235,7 @@ class Object:
     def __repr__(self):
         return f'<{self.class_name} object>'
 
+# Holds the event key and function of a trigger
 @dataclass
 class Trigger:
     event: int

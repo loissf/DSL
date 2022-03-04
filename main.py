@@ -42,7 +42,7 @@ def main():
         # If input is just a message
         # Send a text input to the shell
         else:
-            output = shell.input_text(text, message.author.name)
+            output = shell.input_text(text, message.author.nick if message.author.nick else message.author.name)
             if output:
                 print(f'{message.guild}: #{message.channel} : {text}')
 

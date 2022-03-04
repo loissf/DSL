@@ -78,14 +78,15 @@ class Shell:
                 self.execute_call(element.function, args, self.context, wrapped_args)
                 # print(element.function.body_node) # check trigger structure
 
-                return self.context.get_output()
-
             except Error as e:
                 error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(text, e.position)}'
                 return error_message
             except Exception as e:
                 error_message = f'Exception: {e}'
                 return error_message
+
+        if self.context.output:
+            return self.context.get_output()
 
     def open_file(self, path):
         lines = []

@@ -134,7 +134,7 @@ class BuiltInFunction(Callable):
     def execute_triggers(self, context: Context):
         trigger_list = context.get_root_context().symbol_table.parent.get("@triggers")
         for trigger in trigger_list.value:
-            context.send_output(f'{trigger}')
+            context.send_output(f'{trigger}\n')
     execute_triggers.arg_names = []
 
     def execute_substring(self, context: Context):

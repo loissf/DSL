@@ -1,0 +1,22 @@
+class Test:
+    var a = 10,
+    var b = 20,
+    var c = [],
+
+    function Test(name, value):
+        this.c[0] = name,
+        this.c[1] = value
+    end,
+
+    function getName():
+        this.c[0]
+    end,
+
+    function setName(value):
+        this.c[0] = value
+    end,
+
+    function getObjectName():
+        this.name
+    end
+end

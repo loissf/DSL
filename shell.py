@@ -14,6 +14,7 @@ class Shell:
 
         # BUILT IN FUNCTIONS
         self.context.symbol_table.set('write', BuiltInFunction.write)
+        self.context.symbol_table.set('context', BuiltInFunction.context)
         # BUILT IN FUNCTIONS
     
     # Executes a command and returns either the console output or an error message
@@ -31,6 +32,10 @@ class Shell:
         except Error as e:
             error_message = f'{e}\n{self.pointer_string(command, e.position)}'
             return error_message
+        #except Exception as e:
+            #error_message = f'{e}'
+            #return error_message
+
 
     # DEBUG FUNCTIONS
     #######################################

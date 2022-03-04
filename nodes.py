@@ -66,6 +66,11 @@ class VarAssingNode(Node):
     def __repr__(self):
         return f'{self.var_name_token}<-{self.value_node}'
 
+@dataclass
+class AttributeAccessNode(Node):
+    value_node: VarAccessNode
+    attribute_node: VarAccessNode
+
 @dataclass(repr=False)
 class ListAccessNode(Node):
     list_node: VarAccessNode
@@ -141,13 +146,22 @@ class IfNode(Node):
 
 @dataclass
 class FuncDefNode(Node):
-    func_name_token: Token
     body_node: Node
+    func_name_token: Token = None
     arg_name_tokens: [] = None
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
         return f'{func_name}<-FUNCTION(args({self.arg_name_tokens}) body({self.body_node}))'
+
+@dataclass
+class ClassDefNode(Node):
+    body_node: Node
+    class_name_token: Token = None
+
+    def __repr__(self):
+        class_name = f'{self.class_name_token.value}' if self.class_name_token != None else '<anonymus>'
+        return f'{class_name}<-CLASS body({self.body_node}))'
 
 @dataclass
 class CallNode(Node):

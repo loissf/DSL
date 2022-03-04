@@ -21,7 +21,17 @@ factor      : PLUS|MINUS value
             : if_expr
             : list_expr
             : func_def
+            : class_def
+
+list_element: get_list_element
+            : set_list_element
             : value
+
+attribute   : IDENTIFIER DOT IDENTIFIER
+            : value
+
+value       : NUMBER|STRING|IDENTIFIER
+            : KEYWORD:this
 
 call        : IDENTIFIER (LPAREN (expr (COMMA expr)*)? RPAREN)?
 
@@ -40,12 +50,38 @@ func_def    : KEYWORKD:function IDENTIFIER
               LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN
               COLON statment
 
-value       : NUMBER|STRING|IDENTIFIER
+class_def   : KEYWORD:class IDENTIFIER COLON
+            : statment
 
 
 $var count = 0
 
 trigger on <event>: <expr>
+
+class Test: function Test(a, b): void end, function get_a(): this.a end end
+
+class Test:
+    var a = 10,
+    var b = 20,
+    var c = [],
+
+    function Test(name, value):
+        this.c[0] = name,
+        this.c[1] = value
+    end,
+
+    function getName():
+        this.c[0]
+    end,
+
+    function setName(value):
+        this.c[0] = value
+    end,
+
+    function getObjectName():
+        this.name
+    end
+end
 
 function for(start, finish, body): if start < finish: body(), var start = start + 1, for(start, finish, body) end end
 function calc(value_1, op, value_2): if op == "+": value_1 + value_2 else: if op == "-": value_1 - value_2 else: if op == "*": value_1 * value_2 else: if op == "/": value_1 / value_2

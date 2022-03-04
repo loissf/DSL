@@ -1,0 +1,3 @@
+class Test: var a = 10, function get_a(): this.a end end,
+var test = Test(),
+write(test.get_a())

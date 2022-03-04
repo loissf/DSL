@@ -1,7 +1,12 @@
-from dataclasses import dataclass
-from interpreter import Interpreter
-from context import Context, SymbolTable
+import context
+import interpreter as inter
 
+from context import *
+from errors  import TypeError
+
+from dataclasses import dataclass
+
+# Parent class for base types that just hold a value
 @dataclass
 class Value:
     value: any
@@ -9,8 +14,26 @@ class Value:
     def __repr__(self):
         return f'{self.value}'
 
+    # Method that returns the value wrapped in the proper vale type     # TODO: list type
+    def wrap(self):
+        value_type = type(self.value)
+        if value_type == int:
+            return Integer(self.value)
+        elif value_type == float:
+            return Float(self.value)
+        elif value_type == str:
+            return String(self.value)
+        elif value_type == bool:
+            return Boolean(self.value)
+        elif self.value == None:
+            return Null() 
+
 @dataclass(repr=False)
-class Number(Value):
+class Integer(Value):
+    value: float
+
+@dataclass(repr=False)
+class Float(Value):
     value: float
 
 @dataclass(repr=False)
@@ -21,6 +44,17 @@ class String(Value):
 class Boolean(Value):
     value: bool
 
+# Null type value, holds None and doesnt require parameters to construct
+@dataclass(repr=False)
+class Null(Value):
+    value: None
+    def __init__(self):
+        self.value = None
+
+    def __repr__(self):
+        return f'null'
+
+# Type of value that stores a list of elements, impelements methods to get, set and append elements
 @dataclass(repr=False)
 class List(Value):
     value: []
@@ -31,15 +65,21 @@ class List(Value):
     def setElement(self, index, value):
         self.value[int(index)] = value
 
+    def appendElement(self, value):
+        self.value.append(value)
+
+# TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
+
+# Parent class for all types that can be called with identifier() syntax
 @dataclass
 class Callable:
     name: str
 
     def check_args(self, args, arg_names):
         if len(args) > len(arg_names):
-            raise Exception(f'Too many arguments, expected {len(arg_names)} but {len(args)} where given')
+            raise TypeError(f'{self.name}() too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
         if len(args) < len(arg_names):
-            raise Exception(f'Too few arguments, expected {len(arg_names)} but {len(args)} where given')
+            raise TypeError(f'{self.name}() too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
 
     def create_context(self, args, arg_names, parent):
         new_symbol_table = SymbolTable(parent.symbol_table)
@@ -47,7 +87,7 @@ class Callable:
         for i in range(len(args)):
             arg_name = arg_names[i]
             arg_value = args[i]
-  
+            
             new_symbol_table.set(arg_name, arg_value)
 
         new_context = Context(self.name, new_symbol_table, parent)
@@ -56,6 +96,7 @@ class Callable:
     def execute(self, args, context: Context):
         pass
 
+# User defined function
 @dataclass(repr=False)
 class Function(Callable):
     body_node: any
@@ -63,7 +104,7 @@ class Function(Callable):
     context: Context = None
     
     def execute(self, args, context: Context):
-        interpreter = Interpreter()
+        interpreter = inter.Interpreter()
 
         call_context = context if self.context == None else self.context
         self.check_args(args, self.arg_names)
@@ -75,6 +116,7 @@ class Function(Callable):
     def __repr__(self):
         return f'<function {self.name}>'
 
+# Built in functions
 @dataclass(repr=False)
 class BuiltInFunction(Callable):
 
@@ -93,24 +135,52 @@ class BuiltInFunction(Callable):
         value = str(context.symbol_table.get('value'))
         value += '\n'
         context.send_output(value)
-        # print(value)
     execute_write.arg_names = ['value']
         
     def execute_context(self, context: Context):
-        symbol_table = SymbolTable(context.symbol_table)
-        symbol_table.set('variables', f'{context.symbol_table}')
-        symbol_table.set('name', context.display_name)
-        context_object = Object('Context', Context(context.display_name, symbol_table, context))
-        print(f'{context_object} {symbol_table}')
-        return context_object
+        context.send_output(f'{context.parent}')
     execute_context.arg_names = []
+
+    def execute_symbols(self, context: Context):
+        context.send_output(f'{context.parent.symbol_table}')
+    execute_symbols.arg_names = []
+
+    def execute_triggers(self, context: Context):
+        trigger_list = context.get_root_context().symbol_table.parent.get("@triggers")
+        for trigger in trigger_list.value:
+            context.send_output(f'{trigger}\n')
+    execute_triggers.arg_names = []
+
+    def execute_substring(self, context: Context):
+        string = context.symbol_table.get('string').value
+        start  = context.symbol_table.get('start').value
+        end    = context.symbol_table.get('end').value
+        return String(string[int(start):int(end)])
+    execute_substring.arg_names = ['string', 'start', 'end']
+
+    def execute_contains(self, context: Context):
+        string    = context.symbol_table.get('string').value
+        substring = context.symbol_table.get('substring').value
+        return Boolean(substring in string)
+    execute_contains.arg_names = ['string', 'substring']
+
+    def execute_string(self, context: Context):
+        value = context.symbol_table.get('value').value
+        return String(str(value))
+    execute_string.arg_names = ['value']
 
     def __repr__(self):
         return f'<built_in_function {self.name}>'
 
 BuiltInFunction.write       = BuiltInFunction('write')
 BuiltInFunction.context     = BuiltInFunction('context')
+BuiltInFunction.symbols     = BuiltInFunction('symbols')
+BuiltInFunction.triggers    = BuiltInFunction('triggers')
+BuiltInFunction.substring   = BuiltInFunction('substring')
+BuiltInFunction.contains    = BuiltInFunction('contains')
+BuiltInFunction.string      = BuiltInFunction('string')
 
+# User defined class, calling a class returns an object instance of the class
 @dataclass(repr=False)
 class Class(Callable):
     body_node: any
@@ -118,10 +188,12 @@ class Class(Callable):
     def execute(self, args, context: Context):
         
         new_symbol_table = SymbolTable(context.symbol_table)
-        instance_context = Context(self.name, new_symbol_table, context)                  
+        instance_context = Context(self.name, new_symbol_table, context)
 
-        interpreter = Interpreter()                                                 
-        interpreter.visit(self.body_node, instance_context)                                  
+        interpreter = inter.Interpreter()                                                 
+        interpreter.visit(self.body_node, instance_context)
+
+        new_object = Object(self.name, instance_context)                                 
 
         constructor = instance_context.symbol_table.get(self.name, True)                
         if constructor:
@@ -137,12 +209,13 @@ class Class(Callable):
             constructor_context = self.create_context(args, arg_names, context)            # create the context of the future object
             result = constructor.execute(args, constructor_context)                        # constructor shares context with the instance of the future object     # result of the constructor can be ignored
         '''
-        return Object(self.name, instance_context)
+        return new_object
         
 
     def __repr__(self):
         return f'<class {self.name}>'
 
+# Intance of a class
 @dataclass(repr=False)
 class Object:
     class_name: str
@@ -152,7 +225,7 @@ class Object:
         self.class_name = class_name
         self.object_context = object_context
         self.object_context.symbol_table.set('this', self)
-
+    
     def getAttribute(self, attr):
         return self.object_context.symbol_table.get(attr)
 
@@ -161,3 +234,15 @@ class Object:
 
     def __repr__(self):
         return f'<{self.class_name} object>'
+
+# Holds the event key and function of a trigger
+@dataclass
+class Trigger:
+    event: int
+    function: Function
+
+    def __repr__(self):
+        event = ''
+        if self.event == 0:
+            event = 'on_message'
+        return f'{event} : {self.function}'

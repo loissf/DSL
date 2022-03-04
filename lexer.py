@@ -1,8 +1,12 @@
-from tokens import Token, TokenType
-import string
+import tokens
+
+from tokens import *
+
 from errors import IllegalCharError, SyntaxError
 
-WHITESPACE          = ' \n\t'
+import string
+
+WHITESPACE          = ' \t'
 DIGITS              = '0123456789'
 LOGIC_OP            = '=!><'
 LETTERS             = string.ascii_letters
@@ -22,19 +26,25 @@ KEYWORDS = [
     'end',
     'class',
     'this',
-    'void'
+    'void',
+    'trigger'
 ]
+
+@dataclass
+class Position:
+    character: int
+    line:      int
 
 class Lexer:
     def __init__(self, text):
         self.text = iter(text)
-        self.position = -1
+        self.position = Position(-1, 0)
         self.advance()
 
     def advance(self):
         try:
             self.current_char = next(self.text)
-            self.position += 1
+            self.position.character += 1
         except StopIteration:
             self.current_char = None
 
@@ -55,6 +65,9 @@ class Lexer:
                 yield self.generate_logic_op()
 
             elif self.current_char == '"':
+                yield self.generate_string()
+
+            elif self.current_char == "'":
                 yield self.generate_string()
                 
             elif self.current_char == '+':
@@ -100,6 +113,12 @@ class Lexer:
             elif self.current_char == '.':
                 self.advance()
                 yield Token(TokenType.DOT, self.position)
+
+            elif self.current_char == '\n':
+                self.position.line += 1
+                self.position.character = -1
+                self.advance()
+                yield Token(TokenType.EOL, self.position)
                 
             else:
                 char = self.current_char
@@ -124,7 +143,10 @@ class Lexer:
             number += self.current_char
             self.advance()
 
-        return Token(TokenType.NUMBER, start_position, float(number))
+        if decimal_point_count > 0:
+            return Token(TokenType.FLOAT, start_position, float(number))
+        else:
+            return Token(TokenType.INT, start_position, int(number))
 
     # Generates either double char or single char logic operator, or equals token
     def generate_logic_op(self):
@@ -150,18 +172,30 @@ class Lexer:
                 token = Token(TokenType.LOWER_EQUALS, start_position)
             elif first_op == '!':
                 token = Token(TokenType.NOT_EQUALS, start_position)
+            self.advance()
 
-        self.advance()
         return token
     
     # Generates string token with all characters found between '"' as value
     def generate_string(self):
         string = ''
+        starting_quote = self.current_char
         start_position = self.position
         self.advance()
 
-        while self.current_char != None and self.current_char != '"':
-            string += self.current_char
+        while self.current_char != None and self.current_char != starting_quote:
+            if self.current_char == '\\':
+                self.advance()
+                if self.current_char == 'n':
+                    string += '\n'
+                elif self.current_char == 't':
+                    string += '\t'
+                elif self.current_char == '\\':
+                    string += '\\'
+                else:
+                    raise SyntaxError('Expected \\n , \\t , \\', self.position)
+            else:
+                string += self.current_char
             self.advance()
             if self.current_char == None:
                 raise SyntaxError('Unclosed string literal', start_position)

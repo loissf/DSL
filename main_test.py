@@ -1,3 +1,5 @@
+import shell
+
 from shell import Shell
 
 def main():
@@ -6,21 +8,18 @@ def main():
 
     while True:
         text = input('>>')
+        output = None
+        if text.startswith('$'):
+            text = text[1:len(text)]
 
-        if text.startswith('file '):
-            text = text[5:len(text)]
+            if text.startswith('file '):
+                text = text[5:len(text)]
 
-            lines = []
-            with open(text, 'r') as file:
-                lines += file.readlines()
-
-            program = ''
-            for line in lines:
-                program += line
+                output = shell.open_file(text)      # user input = $file <path>
+            else:
+                output = shell.run_command(text)    # user input = $expression
         else:
-            program = text
-
-        output = shell.run_command(program)
+            output = shell.input_text(text)         # user input = message
 
         if output:
             print(f'{output}')

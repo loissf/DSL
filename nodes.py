@@ -1,5 +1,8 @@
+import tokens
+
+from tokens import *
+
 from dataclasses import dataclass
-from tokens import Token, TokenType
 
 # DEFINITION OF THE ABSTRACT SYNTAX TREE NODES
 # The abstract syntax tree is a node itself, that may have more nodes as parameters
@@ -23,7 +26,11 @@ class ValueNode(Node):
         return f'{self.token.value}'
 
 @dataclass(repr=False, init=False)
-class NumberNode(ValueNode):
+class IntegerNode(ValueNode):
+    value: int
+
+@dataclass(repr=False, init=False)
+class FloatNode(ValueNode):
     value: float
 
 @dataclass(repr=False, init=False)
@@ -45,7 +52,10 @@ class ListNode(Node):
     element_nodes: []
 
     def __repr__(self):
-        return f'LIST{self.element_nodes}'
+        elements = ''
+        for element in self.element_nodes:
+            elements += f'{element},\n'
+        return f'LIST[\n{elements}]'
 
 @dataclass
 class VarAccessNode(Node):
@@ -56,7 +66,7 @@ class VarAccessNode(Node):
         self.var_name_token = var_name_token
 
     def __repr__(self):
-        return f'{self.var_name_token}'
+        return f'VAR[{self.var_name_token}]'
 
 @dataclass
 class VarAssingNode(Node):
@@ -64,19 +74,31 @@ class VarAssingNode(Node):
     value_node: Node
 
     def __repr__(self):
-        return f'{self.var_name_token}<-{self.value_node}'
+        return f'VAR[{self.var_name_token}]<-{self.value_node}'
 
 @dataclass
 class AttributeAccessNode(Node):
-    value_node: VarAccessNode
+    object_value: VarAccessNode
     attribute_node: VarAccessNode
+
+    def __repr__(self):
+        return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]'
+
+@dataclass
+class AttributeAssingNode(Node):
+    object_value: VarAccessNode
+    attribute_node: VarAccessNode
+    value_node: Node
+
+    def __repr__(self):
+        return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]<-{self.value_node}'
 
 @dataclass(repr=False)
 class ListAccessNode(Node):
     list_node: VarAccessNode
-    index_node: NumberNode
+    index_node: IntegerNode
 
-    def __init__(self, list_node: VarAccessNode, index_node: NumberNode):
+    def __init__(self, list_node: VarAccessNode, index_node: IntegerNode):
         super().__init__(list_node.position)
         self.list_node = list_node
         self.index_node = index_node
@@ -87,10 +109,10 @@ class ListAccessNode(Node):
 @dataclass(repr=False)
 class ListAssingNode(Node):
     list_node: VarAccessNode
-    index_node: NumberNode
+    index_node: IntegerNode
     value_node: Node
 
-    def __init__(self, list_node: VarAccessNode, index_node: NumberNode, value_node: Node):
+    def __init__(self, list_node: VarAccessNode, index_node: IntegerNode, value_node: Node):
         super().__init__(list_node.position)
         self.list_node = list_node
         self.index_node = index_node
@@ -126,15 +148,7 @@ class UnaryOpNode(Node):
 
     def __repr__(self):
         return f'({self.op_token}, {self.node})'
-# NOW A BUILT IN FUNCTION
-'''
-@dataclass
-class WriteNode(Node):
-    value_node: StringNode
 
-    def __repr__(self):
-        return f'PRINT "{self.value_node}"'
-'''
 @dataclass
 class IfNode(Node):
     condition: any
@@ -152,7 +166,7 @@ class FuncDefNode(Node):
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
-        return f'{func_name}<-FUNCTION(args({self.arg_name_tokens}) body({self.body_node}))'
+        return f'FUNCTION->{func_name} (args({self.arg_name_tokens}) body({self.body_node}))'
 
 @dataclass
 class ClassDefNode(Node):
@@ -161,7 +175,7 @@ class ClassDefNode(Node):
 
     def __repr__(self):
         class_name = f'{self.class_name_token.value}' if self.class_name_token != None else '<anonymus>'
-        return f'{class_name}<-CLASS body({self.body_node}))'
+        return f'CLASS->{class_name} body({self.body_node}))'
 
 @dataclass
 class CallNode(Node):
@@ -175,3 +189,9 @@ class CallNode(Node):
 
     def __repr__(self):
         return f'CALL->{self.func_node}(args({self.arg_nodes}))'
+
+@dataclass
+class TriggerDefNode(Node):
+    body_node: Node
+    event: VarAccessNode
+    

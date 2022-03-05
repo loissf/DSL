@@ -1,0 +1,115 @@
+Statments                   -EOL (end of line) and comma are treated the same, including allowing consecutives
+---------                   -end or any amount of consecutive ends can be avoided in case of EOF (end of file)
+                            -Statmets are lists of expressions and as so they return a list of those expressions return values
+
+[expression] ( (EOL|,) [expression])? end
+
+
+Identifier
+----------
+-Any array of characters in between whitespaces or EOL that starts with an ascii letter
+-Can contain '_' but cant start with anything else than letters
+-Cant be any of the reserved keywords
+
+
+Keywords
+--------
+var, and, or, not, true, false, if, else, function, end, class, this, void, trigger
+
+true  = positive logic value
+false = negative logic value
+void  = empty value type, or null
+this  = the object value inside an object context
+
+
+Variable assignment         -The stored value will be the return value of the expression
+-------------------         -Some expressions may return void, including variable assignment itself
+
+var [identifier] = [expression]
+
+
+Variable access             -Returns the value of the variable
+---------------
+[identifier]
+
+
+If statment                 -If the expression returns a logic value true, the statment is executed
+-----------                 -If and else statment is defined, its executed if the expression returns a logic value false
+
+if ([expression]) : [statment] ( else: [statment] )?
+
+
+Calls                       -Only identifiers that inherit from Callable type can be called, those are: (Function, BuiltInFunction and Class)
+-----
+[identifier] ([arguments(,)])
+
+
+Function declaration        -The function is stored in the symbol table with the identifier name
+--------------------
+function [identifier] ([arguments(,)]) : [statment]
+
+
+Class declaration           -Inside the class body, if a function shares the class name will be treated as the constructor of that class
+-----------------           -Calling a class executes its constructor if any and returns an Object type
+                            -As the function, the class is stored in the symbol table
+
+class [identifier] : [statment]
+
+
+Object
+------             
+-Type of the value returned by a class call
+-Contains a context that holds an instance of the body of the class
+
+
+Attribute access            -The return value is the value stored in the second identifier of the first identifier context (the first identifier must be an Object)
+----------------            -If the return value is another object, another attribute access can be chained with another dot '.'
+
+[identifier] . [identifier]
+
+
+Attribute assign
+----------------
+[identifier] . [identifier] = [expression]
+
+
+List                        -As the variable assignment it stores the return value of the expressions
+----------------            -The list declaration returns a List type that can be assigned to a variable for later use
+
+[ [expression] (,[expression])? ]
+
+
+List access                 -The value of the expression is used as the index to be returned by the list
+-----------                 -The expression has to return a numeric value
+
+[identifier] |[| [expression] |]|
+
+
+List assign
+-----------
+[identifier] |[| [expression] |]| = [expression]
+
+
+Trigger declaration         -Stores in the triggers list of the root context symbol table a Trigger type that holds the event value and function to execute
+-------------------         -The condition and statment are translated into a function containing an if containing the statment
+                            -Triggers are called automatically by the shell when the event type matches
+                            -The context used in the trigger execution is the one where it was created
+
+trigger [event] ([condition]) : [statment]
+
+
+BuiltInFunctions
+----------------
+write([value])                      -Prints the string representation of the value
+context()                           -Prints the current context (and its parent contexts)?
+symbols()                           -Prints all the symbols on the context
+triggers()                          -Prints all the triggers
+subtring([string], [start], [end])  -Returns a substring between [start] and [end] of the [string]
+contains([string], [substring])     -Returns true if the [string] contains the [substring], false otherwise
+string([value])                     -Returns the string representation of the value
+dump()                              -Clears all the symbols on the context
+
+
+Any code can be written in a single line or in multiple ones, by swapping seamlessly between comma or EOL, wich are parsed the same way
+Indentation is ignored but still recomended
+Variables cant be declared and assigned separately

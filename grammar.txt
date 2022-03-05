@@ -1,7 +1,6 @@
 statment    : expr ((COMMA expr)*)? KEYWORD:end
 
 expression  : KEYWORD:var IDENTIFIER (EQUALS expression)?
-            : KEYWORD:write expression
             : arith_op
             : logic_op
 

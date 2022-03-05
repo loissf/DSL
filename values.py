@@ -75,6 +75,7 @@ class List(Value):
 class Callable:
     name: str
 
+    # TODO: arg checking and function declaration allow for default argument values
     def check_args(self, args, arg_names):
         if len(args) > len(arg_names):
             raise TypeError(f'{self.name}() too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
@@ -138,7 +139,7 @@ class BuiltInFunction(Callable):
     execute_write.arg_names = ['value']
         
     def execute_context(self, context: Context):
-        context.send_output(f'{context.parent}')
+        context.send_output(f'{context.parent.get_hierarchy()}')
     execute_context.arg_names = []
 
     def execute_symbols(self, context: Context):
@@ -151,6 +152,7 @@ class BuiltInFunction(Callable):
             context.send_output(f'{trigger}\n')
     execute_triggers.arg_names = []
 
+    # TODO: substitute substring and contains builtin functions for propper keywords and operators
     def execute_substring(self, context: Context):
         string = context.symbol_table.get('string').value
         start  = context.symbol_table.get('start').value
@@ -169,6 +171,11 @@ class BuiltInFunction(Callable):
         return String(str(value))
     execute_string.arg_names = ['value']
 
+    # TODO: dump all on no arguments, dump certain variables if given as argument (?)
+    def execute_dump(self, context: Context):
+        context.parent.symbol_table.symbols = {}
+    execute_dump.arg_names = []
+
     def __repr__(self):
         return f'<built_in_function {self.name}>'
 
@@ -179,6 +186,7 @@ BuiltInFunction.triggers    = BuiltInFunction('triggers')
 BuiltInFunction.substring   = BuiltInFunction('substring')
 BuiltInFunction.contains    = BuiltInFunction('contains')
 BuiltInFunction.string      = BuiltInFunction('string')
+BuiltInFunction.dump        = BuiltInFunction('dump')
 
 # User defined class, calling a class returns an object instance of the class
 @dataclass(repr=False)
@@ -200,15 +208,6 @@ class Class(Callable):
             if not isinstance(constructor, Function):
                 raise Exception(f'{constructor} is not a function')
             constructor.execute(args, instance_context)
-        '''
-        if constructor:                                                              # check if has a user-defined constructor
-            if not isinstance(constructor, Function):                                   # check if the constructor is a function
-                raise Exception((f'{constructor} is not callable'))
-            arg_names = constructor.arg_names                                           # get the required arguments for the constructor
-            self.check_args(args, arg_names)                                            # check if the class call arguments match
-            constructor_context = self.create_context(args, arg_names, context)            # create the context of the future object
-            result = constructor.execute(args, constructor_context)                        # constructor shares context with the instance of the future object     # result of the constructor can be ignored
-        '''
         return new_object
         
 
@@ -240,6 +239,7 @@ class Object:
 class Trigger:
     event: int
     function: Function
+    trigger_context: Context
 
     def __repr__(self):
         event = ''

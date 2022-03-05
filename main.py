@@ -24,12 +24,13 @@ def main():
 
         text = message.content
         output = None
-
+        
         # Check if input is a command
         # Send a command to the shell
         if text.startswith('$'):
             text = text[1:len(text)]
             print(f'{message.guild}: #{message.channel} >> {text}')
+            shell.change_context(message.guild, message.channel)
             output = shell.run_command(text)
 
         elif text.startswith('```') and text.endswith('```'):
@@ -37,12 +38,19 @@ def main():
             if text.startswith('dsl'):
                 text = text[3:len(text)]
                 print(f'{message.guild}: #{message.channel} >> code block:\n{text}')
+                shell.change_context(message.guild, message.channel)
                 output = shell.run_command(text)
         
         # If input is just a message
         # Send a text input to the shell
         else:
-            output = shell.input_text(text, message.author.nick if message.author.nick else message.author.name)
+            shell.change_context(message.guild, message.channel)
+            author = ''
+            if isinstance(message.author, discord.Member):
+                author = message.author.nick if message.author.nick else message.author.name
+            else:
+                author = message.author.name
+            output = shell.input_text(text, author)
             if output:
                 print(f'{message.guild}: #{message.channel} : {text}')
 

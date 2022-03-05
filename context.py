@@ -31,36 +31,52 @@ class SymbolTable:
             table += f'{symbol} : {self.symbols.get(symbol)}\n'
         return f'{table}'
 
+@dataclass
+class Output:
+    value: str = None
+
+    def send_output(self, value):
+        if self.value:
+            self.value += value
+        else:
+            self.value = value
+
+    def read_output(self):
+        if self.value:
+            return_value = self.value
+            self.value = None
+            return return_value
+
 # Holds a context name, symbol table and parent if any
-# In case of been the root context may hold some output
 @dataclass
 class Context:
     display_name: str
     symbol_table: SymbolTable
     parent: any = None
-    output: str = None
+    output: Output = None
 
-    # Checks for the root context and sends the output to it
-    def send_output(self, text):
-        root_context = self.get_root_context()
-        if root_context.output:
-            root_context.output += text
-        else:
-            root_context.output = text
-
-    # Returns and resets the output, one time read
-    def get_output(self):
+    def send_output(self, value):
+        print(f'{self.display_name}: {value}')
         if self.output:
-            return_value = self.output
-            self.output = None
-            return return_value
-    
+            self.output.send_output(value)
+        else:
+            self.parent.send_output(value)
+
     # Returns the root context of the context hierarchy
     def get_root_context(self):
         if self.parent:
             return self.parent.get_root_context()
         else:
             return self
+
+    # Returns the context hierarchy
+    def get_hierarchy(self):
+        context = ''
+        if self.parent:
+            context += f'{self}\n{self.parent.get_hierarchy()}'
+        else:
+            context += f'{self}\n'
+        return context
 
     def __repr__(self):
         return f'<{self.display_name}>'

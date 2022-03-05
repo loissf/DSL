@@ -14,7 +14,6 @@ LETTERS_DIGITS      = LETTERS + DIGITS
 
 KEYWORDS = [
     'var',
-#   'write',    NOW A BUILT IN FUNCTION
     'and',
     'or',
     'not',

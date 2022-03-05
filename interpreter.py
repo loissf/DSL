@@ -139,7 +139,7 @@ class Interpreter:
         
         function = Function('@trigger_function', node.body_node, args)
 
-        trigger = Trigger(event, function)
+        trigger = Trigger(event, function, context)
         trigger_list.appendElement(trigger)
 
         return Null()

@@ -18,12 +18,13 @@ factor      : PLUS|MINUS value
             : call
             : variable
             : if_expr
+            : for_expr
             : list_expr
             : func_def
             : class_def
 
 variable    : get_variable
-            : assing_variable
+            : assing_variable   # TODO
             : list_element
 
 list_element: get_list_element
@@ -46,6 +47,11 @@ if_expr     : KEYWORD:if
               statment
               (KEYWORD:else COLON 
               statment )?
+
+for_expr    : KEYWORD:for
+              IDENTIFIER  COMMA ?
+              arith_op    COLON  #steps
+              statment
 
 list_expr   : LSQARE (expr (COMMA expr)*)? RSQARE
 

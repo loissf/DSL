@@ -159,6 +159,12 @@ class IfNode(Node):
         return f'If {self.condition}: {self.if_case}' if self.else_case == None else f'If {self.condition}: {self.if_case} else: {self.else_case}'
 
 @dataclass
+class ForNode(Node):
+    body_node: Node
+    steps: any
+    identifier: Token = None
+
+@dataclass
 class FuncDefNode(Node):
     body_node: Node
     func_name_token: Token = None

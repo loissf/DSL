@@ -20,6 +20,7 @@ KEYWORDS = [
     'true',
     'false',
     'if',
+    'for',
     'else',
     'function',
     'end',

@@ -6,6 +6,7 @@ from tokens import *
 
 from errors import SyntaxError
 
+
 class Parser:
     def __init__(self, tokens):
         self.tokens = iter(tokens)
@@ -195,6 +196,9 @@ class Parser:
 
         elif self.current_token.matches(TokenType.KEYWORD, 'if'):
             return self.if_expr()
+
+        elif self.current_token.matches(TokenType.KEYWORD, 'for'):
+            return self.for_expr()
 
         elif self.current_token.type == TokenType.LSQUARE:
             return self.list_expr()
@@ -478,6 +482,32 @@ class Parser:
             return IfNode(position, condition, if_case, else_case)
 
         return IfNode(position, condition, if_case, None) 
+
+    def for_expr(self):
+        steps       = None
+        body_node   = None
+        identifier  = None
+
+        position = self.current_token.position
+
+        self.advance()
+
+        if self.current_token.type == TokenType.IDENTIFIER:
+            identifier = self.current_token
+            self.advance()
+            if self.current_token.type != TokenType.COMMA:
+                raise SyntaxError("Invalid syntax, expected ','", position)
+            self.advance()
+        
+        steps = self.arith_op()
+
+        if self.current_token.type != TokenType.COLON:
+            raise SyntaxError("Invalid syntax, expected ','", position)
+        self.advance()
+
+        body_node = self.statment()
+
+        return ForNode(position, body_node, steps, identifier)
 
     # ListNode                  [ expression (, expression)*? ]
     ######################################################################

@@ -112,6 +112,17 @@ class Interpreter:
 
         return Null()
 
+    def visit_ForNode(self, node, context):
+        steps = node.steps
+        identifier = node.identifier
+        body_node = node.body_node
+
+        context.symbol_table.set(identifier.value, Integer(0))
+        for i in range(self.visit(steps, context).value):
+            context.symbol_table.set(identifier.value, Integer(i))
+            self.visit(body_node, context)
+        context.symbol_table.remove(identifier.value)
+
     def visit_FuncDefNode(self, node, context):
         func_name = node.func_name_token.value if node.func_name_token else None
         body_node = node.body_node

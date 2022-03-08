@@ -53,13 +53,17 @@ class Context:
     display_name: str
     symbol_table: SymbolTable
     parent: any = None
-    output: Output = None
+    output: any = None
 
     def send_output(self, value):
-        print(f'{self.display_name}: {value}')
         if self.output:
-            self.output.send_output(value)
-        else:
+            import asyncio
+            loop = asyncio._get_running_loop()
+            if loop:
+                asyncio.get_event_loop().create_task(self.output(value))
+            else:
+                asyncio.run(self.output(value))
+        elif self.parent:
             self.parent.send_output(value)
 
     # Returns the root context of the context hierarchy

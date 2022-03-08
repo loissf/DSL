@@ -7,6 +7,10 @@ from nodes      import *
 from context    import *
 from values     import *
 
+from lexer      import Lexer
+from parser_    import Parser
+from errors     import Error
+
 from tokens     import TypeGroups
 from errors     import TypeError
 
@@ -249,4 +253,63 @@ class Interpreter:
         except Exception as e:
             raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value} \n{e}", node.position)
 
-# from values import Number, String, Boolean, Function, List, Callable, Class, Object
+
+
+    def run(self, command, context):
+        try:
+            lexer = Lexer(command)
+            tokens = lexer.generate_tokens()
+
+            parser = Parser(tokens)
+            ast = parser.parse()
+            
+            result = self.visit(ast, context)
+            return 0
+        except Error as e:
+            if e.position:
+                error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+            else:
+                error_message = f'```{e}```'
+            return error_message
+
+    # DEBUG FUNCTIONS
+    #######################################
+    # Returns the string of tokens
+    def tokenize(self, command):
+        try:
+            lexer = Lexer(command)
+            tokens = lexer.generate_tokens()
+            return list(tokens)
+        except Error as e:
+            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+            return error_message
+    
+    # Returns the abstract syntax tree
+    def parse(self, command):
+        try:
+            lexer = Lexer(command)
+            tokens = lexer.generate_tokens()
+
+            parser = Parser(tokens)
+            ast = parser.parse()
+            return ast
+        except Error as e:
+            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+            return error_message
+    #########################################
+
+    
+    # Returns the given text with a pointer towards the character in the given position
+    # May not work with long or multiline statmets
+    def pointer_string(self, text, position):
+        whitespace = [' ']
+        pointer = whitespace * (position.character-1 + len(str(position.line))) + ['^']
+        pointer = ''.join(pointer)
+
+        lines = text.split('\n')
+        lines[position.line] += f'\n{pointer}'
+
+        result = ''
+        for i in range(len(lines)):
+            result += f'{i}  {lines[i]}\n'
+        return result

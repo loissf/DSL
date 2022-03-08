@@ -1,28 +1,32 @@
+from re import S
 import shell
 
 from shell import Shell
 
+async def output_callback(value):
+    print(value)
+
 def main():
 
-    shell = Shell()
+    shell = Shell(output_callback=output_callback)
 
     while True:
         text = input('>>')
-        output = None
+        result = None
         if text.startswith('$'):
             text = text[1:len(text)]
 
             if text.startswith('file '):
                 text = text[5:len(text)]
 
-                output = shell.open_file(text)      # user input = $file <path>
+                result = shell.open_file(text)      # user input = $file <path>
             else:
-                output = shell.run_command(text)    # user input = $expression
+                result = shell.run_command(text)    # user input = $expression
         else:
-            output = shell.input_text(text)         # user input = message
+            result = shell.input_text(text)         # user input = message
 
-        if output:
-            print(f'{output}')
+        if result != 0:
+            print(f'{result}')
 
 if __name__ == '__main__':
     main()

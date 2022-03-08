@@ -39,8 +39,8 @@ built_ins.set('@direct_messages', List([]))
 
 class Shell:
 
-    def __init__(self):
-
+    def __init__(self, output_callback, guild=None, channel=None):
+        
         # BUILT INS INITIALIZATION
         self.context = Context('built_ins', built_ins)
         self.open_file('core.dsl')
@@ -49,37 +49,18 @@ class Shell:
         symbol_table = SymbolTable(built_ins)
         self.shell = Context('shell', symbol_table)
 
-        # DEFAULT CONTEXT
-        self.context = self.shell
+        # CALLBACK
+        self.output_callback = output_callback
 
-        # OUTPUT
-        self.output = Output()
-        self.context.output = self.output
+        # SET CONTEXT
+        self.change_context(output_callback, guild, channel)
 
+    
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
-        try:
-            lexer = Lexer(command)
-            tokens = lexer.generate_tokens()
+        interpreter = Interpreter()
+        return interpreter.run(command, self.context)
 
-            parser = Parser(tokens)
-            ast = parser.parse()
-
-            interpreter = Interpreter()
-            interpreter.visit(ast, self.context)
-            output = self.output.read_output()
-            if output:
-                return output
-        except Error as e:
-            if e.position:
-                error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
-            else:
-                error_message = f'```{e}```'
-            return error_message
-        except Exception as e:
-            error_message = f'{e}'
-            return error_message
-            
 
     # Checks the trigger list with the current message and executes the matching ones
     def input_text(self, text, author = None, context = None):
@@ -106,9 +87,6 @@ class Shell:
                 error_message = f'Exception: {e}'
                 return error_message
 
-        output = self.output.read_output()
-        if output:
-            return output
 
     # Opens file, if its extension matches .dsl, executes its contents
     # otherwise reads it as text aka console input
@@ -142,7 +120,7 @@ class Shell:
     
     # CONTEXT
     #######################################
-    def change_context(self, guild = None, channel = None):
+    def change_context(self, output_callback, guild = None, channel = None):
         self.context.output = None
         if guild:
             guild_list = self.shell.symbol_table.get('@guilds').value
@@ -184,35 +162,9 @@ class Shell:
 
         else:
             self.context = self.shell
-        self.context.output = self.output
+
+        self.context.output = self.output_callback
     #######################################
-
-
-    # DEBUG FUNCTIONS
-    #######################################
-    # Returns the string of tokens
-    def tokenize_command(self, command):
-        try:
-            lexer = Lexer(command)
-            tokens = lexer.generate_tokens()
-            return list(tokens)
-        except Error as e:
-            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
-            return error_message
-    
-    # Returns the abstract syntax tree
-    def parse_command(self, command):
-        try:
-            lexer = Lexer(command)
-            tokens = lexer.generate_tokens()
-
-            parser = Parser(tokens)
-            ast = parser.parse()
-            return ast
-        except Error as e:
-            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
-            return error_message
-    #########################################
 
     # Returns the given text with a pointer towards the character in the given position
     # May not work with long or multiline statmets

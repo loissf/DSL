@@ -134,7 +134,6 @@ class BuiltInFunction(Callable):
 
     def execute_write(self, context: Context):
         value = str(context.symbol_table.get('value'))
-        value += '\n'
         context.send_output(value)
     execute_write.arg_names = ['value']
         

@@ -8,8 +8,6 @@ with open('TOKEN.txt', 'r') as file:
 
 def main():
 
-    shell = Shell()
-
     client = discord.Client()
 
     @client.event
@@ -22,8 +20,14 @@ def main():
         if message.author == client.user:
             return
 
+        async def output_callback(value):
+            print(f'{message.guild}: #{message.channel} <- {value}')
+            await message.channel.send(value)
+
+        shell = Shell(output_callback, message.guild, message.channel)
+
         text = message.content
-        output = None
+        result = None
         
         # Check if input is a command
         # Send a command to the shell
@@ -31,7 +35,7 @@ def main():
             text = text[1:len(text)]
             print(f'{message.guild}: #{message.channel} >> {text}')
             shell.change_context(message.guild, message.channel)
-            output = shell.run_command(text)
+            result = shell.run_command(text)
 
         elif text.startswith('```') and text.endswith('```'):
             text = text[3:-3]
@@ -39,7 +43,7 @@ def main():
                 text = text[3:len(text)]
                 print(f'{message.guild}: #{message.channel} >> code block:\n{text}')
                 shell.change_context(message.guild, message.channel)
-                output = shell.run_command(text)
+                result = shell.run_command(text)
         
         # If input is just a message
         # Send a text input to the shell
@@ -50,14 +54,14 @@ def main():
                 author = message.author.nick if message.author.nick else message.author.name
             else:
                 author = message.author.name
-            output = shell.input_text(text, author)
-            if output:
+            result = shell.input_text(text, author)
+            if result:
                 print(f'{message.guild}: #{message.channel} : {text}')
 
         # Once the message is processed, send any output the shell may have produced
-        if output:
-            print(f'{message.guild}: #{message.channel} <- {output}')
-            await message.channel.send(output)
+        if result and result != 0:
+            print(result)
+
 
     client.run(TOKEN)
 

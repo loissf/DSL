@@ -57,7 +57,7 @@ class Null(Value):
 # Type of value that stores a list of elements, impelements methods to get, set and append elements
 @dataclass(repr=False)
 class List(Value):
-    value: []
+    value: any # list
 
     def getElement(self, index):
         return self.value[int(index)]
@@ -101,7 +101,7 @@ class Callable:
 @dataclass(repr=False)
 class Function(Callable):
     body_node: any
-    arg_names: []
+    arg_names: any # list
     context: Context = None
     
     def execute(self, args, context: Context):

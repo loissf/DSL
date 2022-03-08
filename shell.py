@@ -66,7 +66,7 @@ class Shell:
             ast = parser.parse()
 
             interpreter = Interpreter()
-            result = interpreter.visit(ast, self.context)
+            interpreter.visit(ast, self.context)
             output = self.output.read_output()
             if output:
                 return output
@@ -79,6 +79,7 @@ class Shell:
         except Exception as e:
             error_message = f'{e}'
             return error_message
+            
 
     # Checks the trigger list with the current message and executes the matching ones
     def input_text(self, text, author = None, context = None):

@@ -49,13 +49,26 @@ class VoidNode(ValueNode):
 
 @dataclass
 class ListNode(Node):
-    element_nodes: []
+    element_nodes: any # list
 
     def __repr__(self):
         elements = ''
         for element in self.element_nodes:
             elements += f'{element},\n'
         return f'LIST[\n{elements}]'
+
+@dataclass
+class StatmentNode(ListNode):
+
+    def __repr__(self):
+        elements = ''
+        for element in self.element_nodes:
+            elements += f'{element},\n'
+        return f'EXPR[\n{elements}]'
+
+@dataclass
+class ReturnNode(Node):
+    value_node: Node
 
 @dataclass
 class VarAccessNode(Node):
@@ -119,7 +132,7 @@ class ListAssingNode(Node):
         self.value_node = value_node
 
     def __repr__(self):
-        return f'{self.var_name_token}<-{self.value_node}'
+        return f'{self.list_node}<-{self.value_node}'
 
 @dataclass
 class BinOpNode(Node):
@@ -168,7 +181,7 @@ class ForNode(Node):
 class FuncDefNode(Node):
     body_node: Node
     func_name_token: Token = None
-    arg_name_tokens: [] = None
+    arg_name_tokens: any = None # list
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
@@ -186,9 +199,9 @@ class ClassDefNode(Node):
 @dataclass
 class CallNode(Node):
     func_node: VarAccessNode
-    arg_nodes: []
+    arg_nodes: any # list
 
-    def __init__(self, func_node: VarAccessNode, arg_nodes: []):
+    def __init__(self, func_node: VarAccessNode, arg_nodes: any):
         super().__init__(func_node.position)
         self.func_node = func_node
         self.arg_nodes = arg_nodes

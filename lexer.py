@@ -27,7 +27,8 @@ KEYWORDS = [
     'class',
     'this',
     'void',
-    'trigger'
+    'trigger',
+    'return'
 ]
 
 @dataclass

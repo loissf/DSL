@@ -1,3 +1,4 @@
+from ast import Return
 import nodes
 import context
 import values
@@ -57,7 +58,7 @@ class Interpreter:
         attribute_value = self.visit(node.attribute_node, object_value.object_context)
         
         if attribute_value == None:
-            raise TypeError(f'{node.attribute_node.var_name_token.value} is not defined', node.position)
+            raise TypeError(f'{node.attribute_node} is not defined', node.position)
 
         return attribute_value
 
@@ -84,6 +85,19 @@ class Interpreter:
             elements.append(self.visit(element_node, context))
         
         return List(elements)
+
+    def visit_StatmentNode(self, node, context):
+        return_value = None
+
+        for element_node in node.element_nodes:
+            value = self.visit(element_node, context)
+            if isinstance(element_node, ReturnNode):
+                return_value = value
+
+        return return_value if return_value else None
+
+    def visit_ReturnNode(self, node, context):
+        return self.visit(node.value_node, context)
 
     def visit_ListAccessNode(self, node, context):
         list_var = self.visit(node.list_node, context)
@@ -182,7 +196,7 @@ class Interpreter:
         if node.op_token.type == TokenType.MINUS:
             value = self.visit(node.node, context).value
             result = -value
-            return Number(result)
+            return Value(result).wrap()
         if node.op_token.type.matches(TokenType.KEYWORD, 'not'):
             value = self.visit(node.node, context)
             result = not value

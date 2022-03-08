@@ -53,9 +53,11 @@ class Parser:
         elif not self.current_token.type == TokenType.EOF:
             raise SyntaxError("Invalid syntax, expected end", self.current_token.position)
 
-        return ListNode(position, expressions)
+        return StatmentNode(position, expressions)
 
     def expr(self):
+        
+        position = self.current_token.position
 
         # VoidNode              void
         ######################################################
@@ -64,6 +66,12 @@ class Parser:
             self.advance()
             return VoidNode(token)
         #########
+
+        if self.current_token.matches(TokenType.KEYWORD, 'return'):
+            token = self.current_token
+            self.advance()
+            value = self.expr()
+            return ReturnNode(position, value)
 
         # VarNode               var identifier = expression
         #############################

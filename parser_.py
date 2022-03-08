@@ -1,3 +1,4 @@
+from attr import attr
 import nodes
 import tokens
 
@@ -212,41 +213,10 @@ class Parser:
             return self.list_expr()
         #############################
 
-        return self.list_element()
-
-    def list_element(self):
-        attribute = self.call()
-
-        # ListAccessNode        call[]
-        # ListAsssingNode       call[] = expression
-        ######################################################
-        if self.current_token != None and self.current_token.type == TokenType.LSQUARE:
-            list_node = attribute
-            index = None
-            self.advance()
-
-            if self.current_token.type == TokenType.RSQUARE:
-                raise SyntaxError("Invalid syntax, expected value", self.current_token.position)
-            else:
-                index = self.expr()
-
-                if self.current_token.type != TokenType.RSQUARE:
-                    raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
-            
-                self.advance()
-
-                if self.current_token != None and self.current_token.type == TokenType.EQUALS:
-                    self.advance()
-                    value_node = self.expr()
-                    return ListAssingNode(list_node, index, value_node)
-                else:
-                    return ListAccessNode(list_node, index)
-        #############################
-        
-        return attribute
+        return self.call()
 
     def call(self):
-        attribute = self.attribute()
+        attribute = self.assingment()
 
         # CallNode              attribute()
         ######################################################
@@ -273,6 +243,30 @@ class Parser:
         
         return attribute
 
+    def assingment(self):
+        attribute = self.attribute()
+        position = self.current_token.position
+
+        # Assingment nodes -> identifier    = value
+        #                     attribute     = value
+        #                     list          = value
+        ######################################################
+        if self.current_token != None and self.current_token.type == TokenType.EQUALS:
+            self.advance()
+            value_node = self.expr()
+
+            attr_type = type(attribute)
+            if attr_type == VarAccessNode:
+                return VarAssingNode(position, attribute.var_name_token, value_node)
+            elif attr_type == AttributeAccessNode:
+                return AttributeAssingNode(position, attribute.attribute_node, value_node)
+            elif attr_type == ListAccessNode:
+                return ListAssingNode(attribute.list_node, attribute.index_node, value_node)
+            else:
+                raise SyntaxError(f"Invalid syntax, {attr_type} cant be assinged", self.current_token.position)
+
+        return attribute
+
     def attribute(self):
         value = self.value()
         position = self.current_token.position
@@ -286,14 +280,44 @@ class Parser:
 
                 self.advance()
                 attribute = self.call()
+                return AttributeAccessNode(position, object_value, attribute)
 
-                if self.current_token != None and self.current_token.type == TokenType.EQUALS:
-                    self.advance()
-                    value_node = self.expr()
-                    
-                    return AttributeAssingNode(position, object_value, attribute, value_node)
+            # ListAccessNode        value[]
+            ######################################################
+            elif self.current_token != None and self.current_token.type == TokenType.LSQUARE:
+                list_value = value
+                index = None
+                self.advance()
+
+                if self.current_token.type == TokenType.RSQUARE:
+                    raise SyntaxError("Invalid syntax, expected value", self.current_token.position)
                 else:
-                    return AttributeAccessNode(position, object_value, attribute)
+                    index = self.expr()
+
+                    if self.current_token.type != TokenType.RSQUARE:
+                        raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
+                
+                    self.advance()
+                    list_node = ListAccessNode(list_value, index)
+
+                    # Nested list access -> value[][]
+                    while self.current_token != None and self.current_token.type == TokenType.LSQUARE:
+                        index = None
+                        self.advance()
+
+                        if self.current_token.type == TokenType.RSQUARE:
+                            raise SyntaxError("Invalid syntax, expected value", self.current_token.position)
+                        else:
+                            index = self.expr()
+
+                            if self.current_token.type != TokenType.RSQUARE:
+                                raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
+                        
+                            self.advance()
+                            list_node = ListAccessNode(list_node, index)
+
+                    return list_node
+                    
         #############################
 
         return value

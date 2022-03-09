@@ -21,6 +21,7 @@ built_ins.set('triggers', BuiltInFunction.triggers)
 built_ins.set('substring', BuiltInFunction.substring)
 built_ins.set('contains', BuiltInFunction.contains)
 built_ins.set('string', BuiltInFunction.string)
+built_ins.set('length', BuiltInFunction.length)
 built_ins.set('dump', BuiltInFunction.dump)
 
 # BUILT IN FUNCTIONS

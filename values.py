@@ -177,6 +177,11 @@ class BuiltInFunction(Callable):
         return String(str(value))
     execute_string.arg_names = ['value']
 
+    def execute_length(self, context: Context):
+        list = context.symbol_table.get('list').value
+        return Integer(len(list))
+    execute_length.arg_names = ['list']
+
     # TODO: dump all on no arguments, dump certain variables if given as argument (?)
     def execute_dump(self, context: Context):
         context.parent.symbol_table.symbols = {}
@@ -193,6 +198,7 @@ BuiltInFunction.triggers    = BuiltInFunction('triggers')
 BuiltInFunction.substring   = BuiltInFunction('substring')
 BuiltInFunction.contains    = BuiltInFunction('contains')
 BuiltInFunction.string      = BuiltInFunction('string')
+BuiltInFunction.length      = BuiltInFunction('length')
 BuiltInFunction.dump        = BuiltInFunction('dump')
 
 # User defined class, calling a class returns an object instance of the class

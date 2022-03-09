@@ -105,6 +105,11 @@ class Interpreter:
 
         return return_value if return_value else Null()
 
+    def visit_ImportNode(self, node, context):
+        value = node.value
+        self.import_file(value, context)
+        return Null()
+    
     def visit_ReturnNode(self, node, context):
         return self.visit(node.value_node, context)
 
@@ -309,6 +314,22 @@ class Interpreter:
             error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
     #########################################
+
+
+    # TEMP CODE     TODO: Centralice the io access on either shell or interpreter
+    def import_file(self, path, context):
+        lines = []
+        with open(path, 'r') as file:
+            if file.name.split('.')[1] == 'dsl':
+                lines += file.readlines()
+                program = ''
+                for line in lines:
+                    if '#' in line:
+                        line = line[0:line.index('#')]
+                    program += line
+                return self.run(program, context)
+            else:
+                raise TypeError(f"No script named {file.name} found")
 
     
     # Returns the given text with a pointer towards the character in the given position

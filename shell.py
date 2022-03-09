@@ -68,7 +68,6 @@ class Shell:
             traceback.print_exc()
 
 
-
     # Checks the trigger list with the current message and executes the matching ones
     def input_text(self, text, author = None, context = None):
         trigger_list = built_ins.get('@triggers').value

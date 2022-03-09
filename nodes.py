@@ -67,6 +67,10 @@ class StatmentNode(ListNode):
         return f'EXPR[\n{elements}]'
 
 @dataclass
+class ImportNode(Node):
+    value: str
+
+@dataclass
 class ReturnNode(Node):
     value_node: Node
 

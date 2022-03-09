@@ -74,6 +74,19 @@ class Parser:
             value = self.expr()
             return ReturnNode(position, value)
 
+        if self.current_token.matches(TokenType.KEYWORD, 'import'):
+            token = self.current_token
+            self.advance()
+            if self.current_token.type != TokenType.IDENTIFIER:
+                raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
+            value = self.current_token.value
+            self.advance()
+            while self.current_token.type == TokenType.DOT:
+                self.advance()
+                value += f'.{self.current_token.value}'
+                self.advance()
+            return ImportNode(position, value)
+
         # VarNode               var identifier = expression
         #############################
         if self.current_token.matches(TokenType.KEYWORD, 'var'):

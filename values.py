@@ -68,6 +68,9 @@ class List(Value):
     def appendElement(self, value):
         self.value.append(value)
 
+    def getLenght(self):
+        return len(self.value)
+
 # TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
 
 # Parent class for all types that can be called with identifier() syntax
@@ -135,20 +138,24 @@ class BuiltInFunction(Callable):
     def execute_write(self, context: Context):
         value = str(context.symbol_table.get('value'))
         context.send_output(value)
+        return Null()
     execute_write.arg_names = ['value']
         
     def execute_context(self, context: Context):
         context.send_output(f'{context.parent.get_hierarchy()}')
+        return Null()
     execute_context.arg_names = []
 
     def execute_symbols(self, context: Context):
         context.send_output(f'{context.parent.symbol_table}')
+        return Null()
     execute_symbols.arg_names = []
 
     def execute_triggers(self, context: Context):
         trigger_list = context.get_root_context().symbol_table.parent.get("@triggers")
         for trigger in trigger_list.value:
             context.send_output(f'{trigger}\n')
+        return Null()
     execute_triggers.arg_names = []
 
     # TODO: substitute substring and contains builtin functions for propper keywords and operators
@@ -173,6 +180,7 @@ class BuiltInFunction(Callable):
     # TODO: dump all on no arguments, dump certain variables if given as argument (?)
     def execute_dump(self, context: Context):
         context.parent.symbol_table.symbols = {}
+        return Null()
     execute_dump.arg_names = []
 
     def __repr__(self):

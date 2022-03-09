@@ -1,4 +1,7 @@
 from ast import Return
+import traceback
+
+from attr import attr
 import nodes
 import context
 import values
@@ -12,7 +15,7 @@ from parser_    import Parser
 from errors     import Error
 
 from tokens     import TypeGroups
-from errors     import TypeError
+from errors     import TypeError, IndexError
 
 class Interpreter:
     
@@ -25,7 +28,7 @@ class Interpreter:
         return method(node, context)
 
     def visit_NoneType(self, node, context):
-        return None         # A visit to this node probably means something went wrong, otherwise Nonetype value should be wrapped in a Null type
+        return Null()         # A visit to this node probably means something went wrong, otherwise Nonetype value should be wrapped in a Null type
 
     def visit_IntegerNode(self, node, context):
         return Integer(node.value)
@@ -52,6 +55,8 @@ class Interpreter:
         value = self.visit(node.value_node, context)
 
         self.visit(VarAssingNode(node.position, var_name, value), object_value.object_context)
+
+        return Null()
 
     def visit_AttributeAccessNode(self, node, context):
         object_value = self.visit(node.object_value, context)
@@ -98,20 +103,25 @@ class Interpreter:
             if isinstance(element_node, ReturnNode):
                 return_value = value
 
-        return return_value if return_value else None
+        return return_value if return_value else Null()
 
     def visit_ReturnNode(self, node, context):
         return self.visit(node.value_node, context)
 
     def visit_ListAccessNode(self, node, context):
-        list_var = self.visit(node.list_node, context)
+        list_var: List = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
+        if index.value > list_var.getLenght():
+            raise IndexError(f'index out of range', node.position)
 
         return list_var.getElement(index.value)
     
     def visit_ListAssingNode(self, node, context):
         list_var = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
+        if index.value > list_var.getLenght():
+            raise IndexError(f'index out of range', node.position)
+
         value = self.visit(node.value_node, context)
         
         list_var.setElement(index.value, value)
@@ -140,6 +150,8 @@ class Interpreter:
             context.symbol_table.set(identifier.value, Integer(i))
             self.visit(body_node, context)
         context.symbol_table.remove(identifier.value)
+
+        return Null()
 
     def visit_FuncDefNode(self, node, context):
         func_name = node.func_name_token.value if node.func_name_token else None
@@ -194,7 +206,8 @@ class Interpreter:
         for arg_node in node.arg_nodes:
             args.append(self.visit(arg_node, context))
             
-        return function.execute(args, context)
+        result = function.execute(args, context)
+        return result
             
     def visit_UnaryOpNode(self, node, context):
         if node.op_token.type == TokenType.MINUS:
@@ -254,7 +267,6 @@ class Interpreter:
             raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value} \n{e}", node.position)
 
 
-
     def run(self, command, context):
         try:
             lexer = Lexer(command)
@@ -267,9 +279,9 @@ class Interpreter:
             return 0
         except Error as e:
             if e.position:
-                error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+                error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             else:
-                error_message = f'```{e}```'
+                error_message = f'{e}'
             return error_message
 
     # DEBUG FUNCTIONS
@@ -281,7 +293,7 @@ class Interpreter:
             tokens = lexer.generate_tokens()
             return list(tokens)
         except Error as e:
-            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
     
     # Returns the abstract syntax tree
@@ -294,7 +306,7 @@ class Interpreter:
             ast = parser.parse()
             return ast
         except Error as e:
-            error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}```'
+            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
             return error_message
     #########################################
 
@@ -303,7 +315,7 @@ class Interpreter:
     # May not work with long or multiline statmets
     def pointer_string(self, text, position):
         whitespace = [' ']
-        pointer = whitespace * (position.character-1 + len(str(position.line))) + ['^']
+        pointer = whitespace * (position.character+1 + len(str(position.line))) + ['^']
         pointer = ''.join(pointer)
 
         lines = text.split('\n')

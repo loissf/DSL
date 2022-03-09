@@ -207,7 +207,7 @@ class CallNode(Node):
         self.arg_nodes = arg_nodes
 
     def __repr__(self):
-        return f'CALL->{self.func_node}(args({self.arg_nodes}))'
+        return f'CALL->{self.func_node.var_name_token.value}(args({self.arg_nodes}))'
 
 @dataclass
 class TriggerDefNode(Node):

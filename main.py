@@ -1,3 +1,5 @@
+from email.policy import HTTP
+from http.client import HTTPException
 import discord
 from shell import Shell
 
@@ -21,8 +23,13 @@ def main():
             return
 
         async def output_callback(value):
-            print(f'{message.guild}: #{message.channel} <- {value}')
-            await message.channel.send(value)
+            try:
+                await message.channel.send(value)
+                print(f'{message.guild}: #{message.channel} <- {value}')
+            except discord.errors.HTTPException:
+                await message.channel.send('_ _')   # emtpy message
+                print(f'{message.guild}: #{message.channel} <- {{EMPTY}}')
+                
 
         shell = Shell(output_callback, message.guild, message.channel)
 
@@ -61,6 +68,7 @@ def main():
         # Once the message is processed, send any output the shell may have produced
         if result and result != 0:
             print(result)
+            await message.channel.send('```' + str(result) + '```')
 
 
     client.run(TOKEN)

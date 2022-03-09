@@ -22,3 +22,7 @@ class TypeError(Error):
 class ZeroDivisionError(Error):
     def __init__(self, details, position):
         super().__init__('ZeroDivisionError', details, position)
+
+class IndexError(Error):
+    def __init__(self, details, position):
+        super().__init__('IndexError', details, position)

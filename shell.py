@@ -59,7 +59,13 @@ class Shell:
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
         interpreter = Interpreter()
-        return interpreter.run(command, self.context)
+
+        try:
+            return interpreter.run(command, self.context)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+
 
 
     # Checks the trigger list with the current message and executes the matching ones

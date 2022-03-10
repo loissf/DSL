@@ -99,12 +99,15 @@ class Parser:
             var_name = self.current_token
             self.advance()
 
-            if self.current_token.type != TokenType.EQUALS:
-                raise SyntaxError("Invalid syntax, expected '='", self.current_token.position)
-            self.advance()
-
-            value = self.expr()
-            return VarAssingNode(position, var_name, value)
+            if self.current_token.type == TokenType.EQUALS:
+                # raise SyntaxError("Invalid syntax, expected '='", self.current_token.position)
+                self.advance()
+                value = self.expr()
+                return VarDefineNode(position, var_name, value)
+            else:
+                return VarDefineNode(position, var_name)
+            
+                
         #############################
 
         return self.logic_op()
@@ -271,10 +274,13 @@ class Parser:
             attr_type = type(attribute)
             if attr_type == VarAccessNode:
                 return VarAssingNode(position, attribute.var_name_token, value_node)
+
             elif attr_type == AttributeAccessNode:
                 return AttributeAssingNode(position, attribute.attribute_node, value_node)
+                
             elif attr_type == ListAccessNode:
                 return ListAssingNode(attribute.list_node, attribute.index_node, value_node)
+                
             else:
                 raise SyntaxError(f"Invalid syntax, {attr_type} cant be assinged", self.current_token.position)
 
@@ -284,10 +290,11 @@ class Parser:
         value = self.value()
         position = self.current_token.position
 
-        # AttributeAccessNode        identifier.attribute
-        # AttributeAsssingNode       identifier.attribute = expression
-        ######################################################
+
         if isinstance(value, VarAccessNode):
+
+            # AttributeAccessNode       identifier.attribute
+            ######################################################
             object_value = value
             if self.current_token.type == TokenType.DOT:
 
@@ -313,7 +320,8 @@ class Parser:
                     self.advance()
                     list_node = ListAccessNode(list_value, index)
 
-                    # Nested list access -> value[][]
+            # Nested list access -> value[][]
+            ######################################################
                     while self.current_token != None and self.current_token.type == TokenType.LSQUARE:
                         index = None
                         self.advance()
@@ -330,8 +338,6 @@ class Parser:
                             list_node = ListAccessNode(list_node, index)
 
                     return list_node
-                    
-        #############################
 
         return value
 
@@ -344,10 +350,11 @@ class Parser:
             self.advance()
             return VarAccessNode(token)
 
+        # Inside an object context, 'this' stores a reference to the object
         elif token.matches(TokenType.KEYWORD, 'this'):
             self.advance()
             return VarAccessNode(token)
-        #############################
+        ######################################################
 
         # ValueNodes
         ######################################################
@@ -426,11 +433,9 @@ class Parser:
 
         return FuncDefNode(position, body_node, func_name_token, arg_name_tokens)
 
-    # TriggerDefNode           trigger event_identifier(arguments): statment
+    # TriggerDefNode           trigger event_identifier(condition): statment
     # event_identifier are global constants with int values to identify the event type
     # trigger object is created and stored in @triggers = [] global variable
-    # TODO: trigger event_identifier(logic_op): statment
-    # TODO: equivalent to -> function trigger(message): if logic=op: statment()
     ######################################################################
     def trigger_def(self):
         event           = None

@@ -21,31 +21,17 @@ class SymbolTable:
     def set(self, name, value):
         self.symbols[name] = value
 
-    # Removes a value from the table
     def remove(self, name):
         del self.symbols[name]
+
+    def exists(self, name):
+        return name in self.symbols
         
     def __repr__(self):
         table = ''
         for symbol in self.symbols:
             table += f'{symbol} : {self.symbols.get(symbol)}\n'
         return f'{table}'
-
-@dataclass
-class Output:
-    value: str = None
-
-    def send_output(self, value):
-        if self.value:
-            self.value += value
-        else:
-            self.value = value
-
-    def read_output(self):
-        if self.value:
-            return_value = self.value
-            self.value = None
-            return return_value
 
 # Holds a context name, symbol table and parent if any
 @dataclass
@@ -55,6 +41,7 @@ class Context:
     parent: any = None
     output: any = None
 
+    # Sends an asyncronous callback with the output value
     def send_output(self, value):
         if self.output:
             import asyncio

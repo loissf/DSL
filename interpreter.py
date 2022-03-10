@@ -23,7 +23,7 @@ class Interpreter:
     # meaning the interpreter goes down the tree until it finds a value
 
     # Method to fetch a node in its visit_Name method
-    def visit(self, node, context):
+    def visit(self, node, context: Context):
         method = getattr(self, f'visit_{type(node).__name__}')
         return method(node, context)
 
@@ -80,9 +80,23 @@ class Interpreter:
 
         return value
 
-    def visit_VarAssingNode(self, node, context):
+    def visit_VarAssingNode(self, node, context: Context):
         var_name = node.var_name_token.value
+
+        if not context.symbol_table.exists(var_name):
+            raise TypeError(f'{var_name} is not defined', node.position)
+
         value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
+        context.symbol_table.set(var_name, value)
+
+        return Null()
+
+    def visit_VarDefineNode(self, node, context):
+        var_name = node.var_name_token.value
+        if node.value_node:
+            value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
+        else:
+            value = Null()
         context.symbol_table.set(var_name, value)
 
         return Null()

@@ -12,6 +12,9 @@ from dataclasses import dataclass
 class Node:
     position: int
 
+
+# VALUES
+##################################
 @dataclass
 class ValueNode(Node):
     token: Token
@@ -46,6 +49,8 @@ class VoidNode(ValueNode):
 
     def __init__(self, token):
         super().__init__(token, None)
+##################################
+
 
 @dataclass
 class ListNode(Node):
@@ -74,6 +79,9 @@ class ImportNode(Node):
 class ReturnNode(Node):
     value_node: Node
 
+
+# VARIABLES
+##################################
 @dataclass
 class VarAccessNode(Node):
     var_name_token: Token
@@ -86,13 +94,25 @@ class VarAccessNode(Node):
         return f'VAR[{self.var_name_token}]'
 
 @dataclass
-class VarAssingNode(Node):
+class VarAssingNode(VarAccessNode):
     var_name_token: Token
     value_node: Node
 
     def __repr__(self):
         return f'VAR[{self.var_name_token}]<-{self.value_node}'
 
+@dataclass
+class VarDefineNode(VarAccessNode):
+    var_name_token: Token
+    value_node: Node = None
+
+    def __repr__(self):
+        return f'VAR[{self.var_name_token}]<-VOID'
+##################################
+
+
+# ATTRIBUTES
+##################################
 @dataclass
 class AttributeAccessNode(Node):
     object_value: VarAccessNode
@@ -102,14 +122,16 @@ class AttributeAccessNode(Node):
         return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]'
 
 @dataclass
-class AttributeAssingNode(Node):
-    object_value: VarAccessNode
-    attribute_node: VarAccessNode
+class AttributeAssingNode(AttributeAccessNode):
     value_node: Node
 
     def __repr__(self):
         return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]<-{self.value_node}'
+##################################
 
+
+# LIST ELEMENTS
+##################################
 @dataclass(repr=False)
 class ListAccessNode(Node):
     list_node: VarAccessNode
@@ -124,19 +146,17 @@ class ListAccessNode(Node):
         return f'{self.list_node}'
 
 @dataclass(repr=False)
-class ListAssingNode(Node):
-    list_node: VarAccessNode
-    index_node: IntegerNode
+class ListAssingNode(ListAccessNode):
     value_node: Node
 
     def __init__(self, list_node: VarAccessNode, index_node: IntegerNode, value_node: Node):
-        super().__init__(list_node.position)
-        self.list_node = list_node
-        self.index_node = index_node
+        super().__init__(list_node, index_node)
         self.value_node = value_node
 
     def __repr__(self):
         return f'{self.list_node}<-{self.value_node}'
+##################################
+
 
 @dataclass
 class BinOpNode(Node):

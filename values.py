@@ -44,7 +44,7 @@ class String(Value):
 class Boolean(Value):
     value: bool
 
-# Null type value, holds None and doesnt require parameters to construct
+# Null type value, holds None
 @dataclass(repr=False)
 class Null(Value):
     value: None
@@ -54,7 +54,7 @@ class Null(Value):
     def __repr__(self):
         return f'null'
 
-# Type of value that stores a list of elements, impelements methods to get, set and append elements
+# Type of value that stores a list of elements
 @dataclass(repr=False)
 class List(Value):
     value: any # list
@@ -207,7 +207,7 @@ BuiltInFunction.length      = BuiltInFunction('length')
 BuiltInFunction.time        = BuiltInFunction('time')
 BuiltInFunction.dump        = BuiltInFunction('dump')
 
-# User defined class, calling a class returns an object instance of the class
+# User defined class, calling a class returns an object, instance of the class
 @dataclass(repr=False)
 class Class(Callable):
     body_node: any

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Node:
-    position: int
+    position: tuple[Position, Position]
 
 
 # VALUES

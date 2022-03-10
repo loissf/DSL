@@ -28,21 +28,36 @@ class Value:
         elif self.value == None:
             return Null() 
 
+    def type(self):
+        return 'value'
+
 @dataclass(repr=False)
 class Integer(Value):
     value: float
+
+    def type(self):
+        return 'int'
 
 @dataclass(repr=False)
 class Float(Value):
     value: float
 
+    def type(self):
+        return 'float'
+
 @dataclass(repr=False)
 class String(Value):
     value: str
 
+    def type(self):
+        return 'str'
+
 @dataclass(repr=False)
 class Boolean(Value):
     value: bool
+
+    def type(self):
+        return 'boolean'
 
 # Null type value, holds None
 @dataclass(repr=False)
@@ -50,6 +65,9 @@ class Null(Value):
     value: None
     def __init__(self):
         self.value = None
+
+    def type(self):
+        return 'value'
 
     def __repr__(self):
         return f'null'
@@ -70,6 +88,9 @@ class List(Value):
 
     def getLenght(self):
         return len(self.value)
+
+    def type(self):
+        return 'list'
 
 # TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
 

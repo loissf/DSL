@@ -44,14 +44,21 @@ class TypeGroups:
         TokenType.LOWER,            TokenType.LOWER_EQUALS
     ]
 
+@dataclass
+class Position:
+    character: int
+    line:      int
+
+    def copy(self):
+        return Position(self.character, self.line)
+
 # Holds the type and value of a token 
 # Holds the position in the program string for display in case of an error
 @dataclass
 class Token:
     type: TokenType
-    position: int
+    position: tuple[Position, Position]
     value: any = None
-    
 
     def matches(self, type, value):
         return self.type == type and self.value == value

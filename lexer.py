@@ -32,11 +32,6 @@ KEYWORDS = [
     'import'
 ]
 
-@dataclass
-class Position:
-    character: int
-    line:      int
-
 class Lexer:
     def __init__(self, text):
         self.text = iter(text)
@@ -74,66 +69,66 @@ class Lexer:
                 
             elif self.current_char == '+':
                 self.advance()
-                yield Token(TokenType.PLUS, self.position)
+                yield Token(TokenType.PLUS, (self.position,None))
 
             elif self.current_char == '-':
                 self.advance()
-                yield Token(TokenType.MINUS, self.position)
+                yield Token(TokenType.MINUS, (self.position,None))
 
             elif self.current_char == '*':
                 self.advance()
-                yield Token(TokenType.MULTIPLY, self.position)
+                yield Token(TokenType.MULTIPLY, (self.position,None))
 
             elif self.current_char == '/':
                 self.advance()
-                yield Token(TokenType.DIVIDE, self.position)
+                yield Token(TokenType.DIVIDE, (self.position,None))
 
             elif self.current_char == '(':
                 self.advance()
-                yield Token(TokenType.LPAREN, self.position)
+                yield Token(TokenType.LPAREN, (self.position,None))
 
             elif self.current_char == ')':
                 self.advance()
-                yield Token(TokenType.RPAREN, self.position)
+                yield Token(TokenType.RPAREN, (self.position,None))
 
             elif self.current_char == '[':
                 self.advance()
-                yield Token(TokenType.LSQUARE, self.position)
+                yield Token(TokenType.LSQUARE, (self.position,None))
 
             elif self.current_char == ']':
                 self.advance()
-                yield Token(TokenType.RSQUARE, self.position)
+                yield Token(TokenType.RSQUARE, (self.position,None))
 
             elif self.current_char == ':':
                 self.advance()
-                yield Token(TokenType.COLON, self.position)
+                yield Token(TokenType.COLON, (self.position,None))
 
             elif self.current_char == ',':
                 self.advance()
-                yield Token(TokenType.COMMA, self.position)
+                yield Token(TokenType.COMMA, (self.position,None))
 
             elif self.current_char == '.':
                 self.advance()
-                yield Token(TokenType.DOT, self.position)
+                yield Token(TokenType.DOT, (self.position,None))
 
             elif self.current_char == '\n':
                 self.position.line += 1
                 self.position.character = -1
                 self.advance()
-                yield Token(TokenType.EOL, self.position)
+                yield Token(TokenType.EOL, (self.position,None))
                 
             else:
                 char = self.current_char
                 self.advance()
-                raise IllegalCharError(f"'{char}'", self.position)
+                raise IllegalCharError(f"'{char}'", (self.position,None))
 
-        yield Token(TokenType.EOF, self.position)
+        yield Token(TokenType.EOF, (self.position,None))
         
     # Generates number token with all digits found as value
     def generate_number(self):
         decimal_point_count = 0
         number = self.current_char
-        start_position = self.position
+        start_position = self.position.copy()
         self.advance()
 
         while self.current_char != None and self.current_char in DIGITS + '.':
@@ -146,34 +141,34 @@ class Lexer:
             self.advance()
 
         if decimal_point_count > 0:
-            return Token(TokenType.FLOAT, start_position, float(number))
+            return Token(TokenType.FLOAT, (start_position, self.position), float(number))
         else:
-            return Token(TokenType.INT, start_position, int(number))
+            return Token(TokenType.INT, (start_position, self.position), int(number))
 
     # Generates either double char or single char logic operator, or equals token
     def generate_logic_op(self):
         first_op = self.current_char
-        start_position = self.position
+        start_position = self.position.copy()
         self.advance()
         
         if self.current_char != '=':
             if first_op == '=':
-                token = Token(TokenType.EQUALS, start_position)
+                token = Token(TokenType.EQUALS, (start_position, self.position))
             elif first_op == '>':
-                token = Token(TokenType.GREATER, start_position)
+                token = Token(TokenType.GREATER, (start_position, self.position))
             elif first_op == '<':
-                token = Token(TokenType.LOWER, start_position)
+                token = Token(TokenType.LOWER, (start_position, self.position))
             elif first_op == '!':
-                raise SyntaxError('Invalid syntax', start_position)
+                raise SyntaxError('Invalid syntax', (start_position, self.position))
         elif self.current_char == '=':
             if first_op == '=':
-                token = Token(TokenType.DOUBLE_EQUALS, start_position)
+                token = Token(TokenType.DOUBLE_EQUALS, (start_position, self.position))
             elif first_op == '>':
-                token = Token(TokenType.GREATER_EQUALS, start_position)
+                token = Token(TokenType.GREATER_EQUALS, (start_position, self.position))
             elif first_op == '<':
-                token = Token(TokenType.LOWER_EQUALS, start_position)
+                token = Token(TokenType.LOWER_EQUALS, (start_position, self.position))
             elif first_op == '!':
-                token = Token(TokenType.NOT_EQUALS, start_position)
+                token = Token(TokenType.NOT_EQUALS, (start_position, self.position))
             self.advance()
 
         return token
@@ -182,7 +177,7 @@ class Lexer:
     def generate_string(self):
         string = ''
         starting_quote = self.current_char
-        start_position = self.position
+        start_position = self.position.copy()
         self.advance()
 
         while self.current_char != None and self.current_char != starting_quote:
@@ -194,21 +189,26 @@ class Lexer:
                     string += '\t'
                 elif self.current_char == '\\':
                     string += '\\'
+                elif self.current_char == '\'':
+                    string += '\''
                 else:
                     raise SyntaxError('Expected \\n , \\t , \\', self.position)
+            elif self.current_char == '\n':
+                self.position.line += 1
+                self.position.character = -1
             else:
                 string += self.current_char
             self.advance()
             if self.current_char == None:
-                raise SyntaxError('Unclosed string literal', start_position)
+                raise SyntaxError('Unclosed string literal', (start_position, self.position))
         self.advance()
 
-        return Token(TokenType.STRING, start_position, string)
+        return Token(TokenType.STRING, (start_position, self.position), string)
 
     # Generates identifier all characters, digits and '_' found as value
     def generate_identifier(self):
         identifier = ''
-        start_position = self.position
+        start_position = self.position.copy()
 
         while self.current_char != None and self.current_char in LETTERS_DIGITS + '_':
             identifier += self.current_char
@@ -216,4 +216,4 @@ class Lexer:
 
         # If the identifier found matches with any of the keywords, the returned token type will be keyword instead
         token_type = TokenType.KEYWORD if identifier in KEYWORDS else TokenType.IDENTIFIER
-        return Token(token_type, start_position, identifier)
+        return Token(token_type, (start_position, self.position), identifier)

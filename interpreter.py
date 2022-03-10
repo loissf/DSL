@@ -283,7 +283,7 @@ class Interpreter:
             return Value(result).wrap()
             
         except Exception as e:
-            raise TypeError(f"Runtime math error: {left.value}{op_token}{right.value} \n{e}", node.position)
+            raise TypeError(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {e}", node.position)
 
 
     def run(self, command, context):
@@ -298,7 +298,8 @@ class Interpreter:
             return 0
         except Error as e:
             if e.position:
-                error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+                start, end = e.position
+                error_message = f'{e} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, e.position)}'
             else:
                 error_message = f'{e}'
             return error_message
@@ -357,12 +358,30 @@ class Interpreter:
     # Returns the given text with a pointer towards the character in the given position
     # May not work with long or multiline statmets
     def pointer_string(self, text, position):
-        whitespace = [' ']
-        pointer = whitespace * (position.character+1 + len(str(position.line))) + ['^']
-        pointer = ''.join(pointer)
+        start, end = position
 
         lines = text.split('\n')
-        lines[position.line] += f'\n{pointer}'
+
+        whitespace  = [' ']
+        pointer     = None
+        end_pointer = None
+
+        fix = len(str(start.line)) + 2                          # Fix 0 based numbering and line count hint
+        pointer = whitespace * (start.character + fix) + ['^']
+
+        if end:
+            if start.line == end.line:
+                pointer += ['^'] * (end.character - start.character)
+            else:
+                pointer += ['^'] * (len(lines[start.line]) - start.character)
+                end_pointer = (whitespace * fix) + (['^'] * end.character)
+
+        pointer = ''.join(pointer)
+        lines[start.line] += f'\n{pointer}'
+
+        if end_pointer:
+            end_pointer = ''.join(end_pointer)
+            lines[end.line] += f'\n{end_pointer}'
 
         result = ''
         for i in range(len(lines)):

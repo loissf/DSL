@@ -304,8 +304,8 @@ class Parser:
 
             # ListAccessNode        value[]
             ######################################################
-            elif self.current_token != None and self.current_token.type == TokenType.LSQUARE:
-                list_value = value
+            list_node = value
+            while self.current_token != None and self.current_token.type == TokenType.LSQUARE:
                 index = None
                 self.advance()
 
@@ -318,26 +318,9 @@ class Parser:
                         raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
                 
                     self.advance()
-                    list_node = ListAccessNode(list_value, index)
+                    list_node = ListAccessNode(list_node, index)
 
-            # Nested list access -> value[][]
-            ######################################################
-                    while self.current_token != None and self.current_token.type == TokenType.LSQUARE:
-                        index = None
-                        self.advance()
-
-                        if self.current_token.type == TokenType.RSQUARE:
-                            raise SyntaxError("Invalid syntax, expected value", self.current_token.position)
-                        else:
-                            index = self.expr()
-
-                            if self.current_token.type != TokenType.RSQUARE:
-                                raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
-                        
-                            self.advance()
-                            list_node = ListAccessNode(list_node, index)
-
-                    return list_node
+            return list_node
 
         return value
 

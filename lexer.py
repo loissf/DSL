@@ -116,7 +116,18 @@ class Lexer:
                 self.position.character = -1
                 self.advance()
                 yield Token(TokenType.EOL, (self.position,None))
-                
+
+            # Optional  TEST
+            ####################################################
+            elif self.current_char == '{':
+                self.advance()
+                yield Token(TokenType.COLON, (self.position,None))
+
+            elif self.current_char == '}':
+                self.advance()
+                yield Token(TokenType.KEYWORD, (self.position,None), 'end')    
+            ####################################################
+
             else:
                 char = self.current_char
                 self.advance()

@@ -175,7 +175,7 @@ class Parser:
         # BinOpNode             factor token factor
         # for '*' , '/' arithmetic operators
         ######################################################
-        while self.current_token != None and self.current_token.type in (TokenType.MULTIPLY, TokenType.DIVIDE):
+        while self.current_token != None and self.current_token.type in (TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD):
             op_token = self.current_token
             self.advance()
             right_node = self.factor()

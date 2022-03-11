@@ -83,6 +83,10 @@ class Lexer:
                 self.advance()
                 yield Token(TokenType.DIVIDE, (self.position,None))
 
+            elif self.current_char == '%':
+                self.advance()
+                yield Token(TokenType.MOD, (self.position,None))
+
             elif self.current_char == '(':
                 self.advance()
                 yield Token(TokenType.LPAREN, (self.position,None))

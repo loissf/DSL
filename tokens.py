@@ -1,5 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
+from lzma import MODE_FAST
 
 class TokenType(Enum):
 
@@ -12,22 +13,23 @@ class TokenType(Enum):
     MINUS           = 6     # -
     MULTIPLY        = 7     # *
     DIVIDE          = 8     # /
-    LPAREN          = 9     # (
-    RPAREN          = 10    # )
-    LSQUARE         = 11    # [
-    RSQUARE         = 12    # [
-    DOUBLE_EQUALS   = 13    # ==
-    NOT_EQUALS      = 14    # !=
-    GREATER         = 15    # >
-    LOWER           = 16    # <
-    GREATER_EQUALS  = 17    # >=
-    LOWER_EQUALS    = 18    # <=
-    STRING          = 19    # " "
-    COLON           = 20    # :
-    COMMA           = 21    # ,
-    DOT             = 22    # .
-    EOL             = 23    # end of line
-    EOF             = 24    # end of file
+    MOD             = 9     # %
+    LPAREN          = 10     # (
+    RPAREN          = 11    # )
+    LSQUARE         = 12    # [
+    RSQUARE         = 13    # [
+    DOUBLE_EQUALS   = 14    # ==
+    NOT_EQUALS      = 15    # !=
+    GREATER         = 16    # >
+    LOWER           = 17    # <
+    GREATER_EQUALS  = 18    # >=
+    LOWER_EQUALS    = 19    # <=
+    STRING          = 20    # " "
+    COLON           = 21    # :
+    COMMA           = 22    # ,
+    DOT             = 23    # .
+    EOL             = 24    # end of line
+    EOF             = 25    # end of file
 
 # Groups of token types that are parsed together in the same node
 @dataclass
@@ -35,7 +37,8 @@ class TypeGroups:
 
     ARITHMETIC_OP = [
         TokenType.PLUS,             TokenType.MINUS,
-        TokenType.MULTIPLY,         TokenType.DIVIDE
+        TokenType.MULTIPLY,         TokenType.DIVIDE,
+        TokenType.MOD
     ]
 
     COMPARATION_OP = [

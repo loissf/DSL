@@ -258,6 +258,8 @@ class Interpreter:
                 if right.value == 0:
                     raise ZeroDivisionError("Division by zero", node.right_node.position)
                 result = left.value / right.value
+            elif op_token.type == TokenType.MOD:
+                result = left.value % right.value
 
             # COMPARATION OPERATIONS
             elif op_token.type == TokenType.DOUBLE_EQUALS:
@@ -307,17 +309,21 @@ class Interpreter:
     # DEBUG FUNCTIONS
     #######################################
     # Returns the string of tokens
-    def tokenize(self, command):
+    def tokenize(self, command, context):
         try:
             lexer = Lexer(command)
             tokens = lexer.generate_tokens()
             return list(tokens)
         except Error as e:
-            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+            if e.position:
+                start, end = e.position
+                error_message = f'{e} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, e.position)}'
+            else:
+                error_message = f'{e}'
             return error_message
     
     # Returns the abstract syntax tree
-    def parse(self, command):
+    def parse(self, command, context):
         try:
             lexer = Lexer(command)
             tokens = lexer.generate_tokens()
@@ -326,7 +332,11 @@ class Interpreter:
             ast = parser.parse()
             return ast
         except Error as e:
-            error_message = f'{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(command, e.position)}'
+            if e.position:
+                start, end = e.position
+                error_message = f'{e} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, e.position)}'
+            else:
+                error_message = f'{e}'
             return error_message
     #########################################
 

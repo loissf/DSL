@@ -366,7 +366,7 @@ class Parser:
     ######################################################################
     def func_def(self):
         func_name_token = None
-        arg_name_tokens = None
+        arg_tokens = None
         body_node       = None
 
         position = self.current_token.position
@@ -384,19 +384,24 @@ class Parser:
 
         self.advance()
         arg_name_tokens = []
+        arg_type_tokens = []
 
-        if self.current_token.type == TokenType.IDENTIFIER:
-            arg_name_tokens.append(self.current_token)
-            self.advance()
+        argument = self.argument()
+        if argument:
+            name, type = argument
+            arg_name_tokens.append(name)
+            arg_type_tokens.append(type)
 
             while self.current_token.type == TokenType.COMMA:
                 self.advance()
 
-                if self.current_token.type != TokenType.IDENTIFIER:
+                argument = self.argument()
+                if not argument:
                     raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
 
-                arg_name_tokens.append(self.current_token)
-                self.advance()
+                name, type = argument
+                arg_name_tokens.append(name)
+                arg_type_tokens.append(type)
 
             if self.current_token.type != TokenType.RPAREN:
                 raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
@@ -414,7 +419,23 @@ class Parser:
 
         body_node = self.statment()
 
-        return FuncDefNode(position, body_node, func_name_token, arg_name_tokens)
+        return FuncDefNode(position, body_node, func_name_token, arg_name_tokens, arg_type_tokens)
+
+    def argument(self):
+        if self.current_token.type == TokenType.IDENTIFIER:
+            arg_name_token = self.current_token
+            self.advance()
+
+            arg_type_token = None
+            if self.current_token.type == TokenType.COLON:
+                self.advance()
+                if self.current_token.type != TokenType.IDENTIFIER:
+                    raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+                arg_type_token = self.current_token
+                self.advance()
+            return arg_name_token, arg_type_token
+        else:
+            return None
 
     # TriggerDefNode           trigger event_identifier(condition): statment
     # event_identifier are global constants with int values to identify the event type

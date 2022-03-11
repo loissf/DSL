@@ -205,7 +205,8 @@ class ForNode(Node):
 class FuncDefNode(Node):
     body_node: Node
     func_name_token: Token = None
-    arg_name_tokens: any = None # list
+    arg_name_tokens: list = None
+    arg_type_tokens: list = None
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'

@@ -172,12 +172,18 @@ class Interpreter:
 
         return Null()
 
-    def visit_FuncDefNode(self, node, context):
+    def visit_FuncDefNode(self, node: FuncDefNode, context):
         func_name = node.func_name_token.value if node.func_name_token else None
         body_node = node.body_node
-        arg_names = [arg_name.value for arg_name in node.arg_name_tokens]
 
-        function = Function(func_name, body_node, arg_names, context)
+        arg_names = [name_token.value for name_token in node.arg_name_tokens]
+        arg_types = [value_token.value if value_token else None for value_token in node.arg_type_tokens]
+
+        args = []
+        for i in range(len(arg_names)):
+            args.append((arg_names[i], arg_types[i]))
+
+        function = Function(func_name, body_node, args, context)
 
         if node.func_name_token:
             context.symbol_table.set(func_name, function)
@@ -225,7 +231,7 @@ class Interpreter:
         for arg_node in node.arg_nodes:
             args.append(self.visit(arg_node, context))
             
-        result = function.execute(args, context)
+        result = function.execute(args, context, self.visit)
         return result
             
     def visit_UnaryOpNode(self, node, context):

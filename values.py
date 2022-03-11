@@ -57,7 +57,7 @@ class Boolean(Value):
     value: bool
 
     def type(self):
-        return 'boolean'
+        return 'bool'
 
 # Null type value, holds None
 @dataclass(repr=False)
@@ -92,8 +92,6 @@ class List(Value):
     def type(self):
         return 'list'
 
-# TODO: Maybe swap all the interpreter.visit() calls to the interpreter, and Callable.execute returns the new context (?)
-
 # Parent class for all types that can be called with identifier() syntax
 @dataclass
 class Callable:
@@ -106,11 +104,17 @@ class Callable:
         if len(args) < len(arg_names):
             raise TypeError(f'{self.name}() too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
 
+        for i in range(len(args)):
+            arg_name, arg_type = arg_names[i]
+
+            if arg_type and arg_type != args[i].type():
+                raise TypeError(f'{self.name}() expected argument type {arg_type}, found {args[i].type()} in {arg_name}', None)
+
     def create_context(self, args, arg_names, parent):
         new_symbol_table = SymbolTable(parent.symbol_table)
 
         for i in range(len(args)):
-            arg_name = arg_names[i]
+            arg_name, arg_type = arg_names[i]
             arg_value = args[i]
             
             new_symbol_table.set(arg_name, arg_value)
@@ -118,24 +122,23 @@ class Callable:
         new_context = Context(self.name, new_symbol_table, parent)
         return new_context
 
-    def execute(self, args, context: Context):
+    def execute(self, args, context: Context, visit):
         pass
 
 # User defined function
 @dataclass(repr=False)
 class Function(Callable):
     body_node: any
-    arg_names: any # list
+    arg_names: list[tuple]
     context: Context = None
     
-    def execute(self, args, context: Context):
-        interpreter = inter.Interpreter()
+    def execute(self, args, context: Context, visit):
 
         call_context = context if self.context == None else self.context
         self.check_args(args, self.arg_names)
         new_context = self.create_context(args, self.arg_names, call_context)
 
-        result = interpreter.visit(self.body_node, new_context)
+        result = visit(self.body_node, new_context)
         return result
 
     def __repr__(self):
@@ -145,7 +148,7 @@ class Function(Callable):
 @dataclass(repr=False)
 class BuiltInFunction(Callable):
 
-    def execute(self, args, context: Context):
+    def execute(self, args, context: Context, visit = None):
         
         method_name = f'execute_{self.name}'
         method = getattr(self, method_name)
@@ -160,7 +163,7 @@ class BuiltInFunction(Callable):
         value = str(context.symbol_table.get('value'))
         context.send_output(value)
         return Null()
-    execute_write.arg_names = ['value']
+    execute_write.arg_names = [('value', None)]
         
     def execute_context(self, context: Context):
         context.send_output(f'{context.parent.get_hierarchy()}')
@@ -185,18 +188,18 @@ class BuiltInFunction(Callable):
         start  = context.symbol_table.get('start').value
         end    = context.symbol_table.get('end').value
         return String(string[int(start):int(end)])
-    execute_substring.arg_names = ['string', 'start', 'end']
+    execute_substring.arg_names = [('string', String), ('start', Integer), ('end', Integer)]
 
     def execute_contains(self, context: Context):
         string    = context.symbol_table.get('string').value
         substring = context.symbol_table.get('substring').value
         return Boolean(substring in string)
-    execute_contains.arg_names = ['string', 'substring']
+    execute_contains.arg_names = [('string', String), ('substring', String)]
 
     def execute_string(self, context: Context):
         value = context.symbol_table.get('value').value
         return String(str(value))
-    execute_string.arg_names = ['value']
+    execute_string.arg_names = [('value', None)]
 
     def execute_length(self, context: Context):
         list = context.symbol_table.get('list').value
@@ -233,13 +236,12 @@ BuiltInFunction.dump        = BuiltInFunction('dump')
 class Class(Callable):
     body_node: any
 
-    def execute(self, args, context: Context):
+    def execute(self, args, context: Context, visit):
         
         new_symbol_table = SymbolTable(context.symbol_table)
         instance_context = Context(self.name, new_symbol_table, context)
-
-        interpreter = inter.Interpreter()                                                 
-        interpreter.visit(self.body_node, instance_context)
+                                           
+        visit(self.body_node, instance_context)
 
         new_object = Object(self.name, instance_context)                                 
 

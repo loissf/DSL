@@ -3,6 +3,7 @@ import interpreter as inter
 
 from context import *
 from errors  import TypeError
+from events  import EventType
 
 from dataclasses import dataclass
 
@@ -249,7 +250,7 @@ class Class(Callable):
         if constructor:
             if not isinstance(constructor, Function):
                 raise Exception(f'{constructor} is not a function')
-            constructor.execute(args, instance_context)
+            constructor.execute(args, instance_context, visit)
         return new_object
         
 
@@ -273,18 +274,21 @@ class Object:
     def setAttribute(self, attr, value):
         self.object_context.symbol_table.set(attr, value)
 
+    def getAttributes(self):
+        return self.object_context.symbol_table.symbols
+
+    def type(self):
+        return f'{self.class_name}'
+
     def __repr__(self):
         return f'<{self.class_name} object>'
 
 # Holds the event key and function of a trigger
 @dataclass
 class Trigger:
-    event: int
+    event: EventType
     function: Function
     trigger_context: Context
 
     def __repr__(self):
-        event = ''
-        if self.event == 0:
-            event = 'on_message'
-        return f'{event} : {self.function}'
+        return f'ON_{self.event.name} : {self.function.body_node}'

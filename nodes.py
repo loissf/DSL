@@ -91,7 +91,7 @@ class VarAccessNode(Node):
         self.var_name_token = var_name_token
 
     def __repr__(self):
-        return f'VAR[{self.var_name_token}]'
+        return f'VAR[{self.var_name_token.value}]'
 
 @dataclass
 class VarAssingNode(VarAccessNode):
@@ -99,7 +99,7 @@ class VarAssingNode(VarAccessNode):
     value_node: Node
 
     def __repr__(self):
-        return f'VAR[{self.var_name_token}]<-{self.value_node}'
+        return super().__repr__() + f'<-{self.value_node}'
 
 @dataclass
 class VarDefineNode(VarAccessNode):
@@ -107,7 +107,7 @@ class VarDefineNode(VarAccessNode):
     value_node: Node = None
 
     def __repr__(self):
-        return f'VAR[{self.var_name_token}]<-VOID'
+        return super().__repr__() + f'<-VOID'
 ##################################
 
 
@@ -126,7 +126,7 @@ class AttributeAssingNode(AttributeAccessNode):
     value_node: Node
 
     def __repr__(self):
-        return f'OBJECT[{self.object_value}].ATTRIBUTE[{self.attribute_node}]<-{self.value_node}'
+        return super().__repr__() + f'<-{self.value_node}'
 ##################################
 
 
@@ -154,7 +154,7 @@ class ListAssingNode(ListAccessNode):
         self.value_node = value_node
 
     def __repr__(self):
-        return f'{self.list_node}<-{self.value_node}'
+        return super().__repr__() + f'<-{self.value_node}'
 ##################################
 
 

@@ -1,6 +1,5 @@
 from enum import Enum
 from dataclasses import dataclass
-from lzma import MODE_FAST
 
 class TokenType(Enum):
 

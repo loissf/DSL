@@ -1,7 +1,4 @@
-from ast import Return
-import traceback
-
-from attr import attr
+from textwrap import wrap
 import nodes
 import context
 import values
@@ -196,10 +193,12 @@ class Interpreter:
         event = self.visit(node.event, context)
 
         args = []
-        if event == 0: # on_message TODO: constant values
-            args = ['message']
-        elif event == 1:
-            pass       # on_event   TODO: other event types in this pattern
+        if event == EventType.MESSAGE:
+            args = [('message', None)]
+        elif event == EventType.LOGIN:
+            pass
+        elif event == EventType.SCHEDULE:
+            pass
         else:
             pass
         
@@ -305,12 +304,32 @@ class Interpreter:
             result = self.visit(ast, context)
             return 0
         except Error as e:
-            if e.position:
-                start, end = e.position
-                error_message = f'{e} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, e.position)}'
-            else:
-                error_message = f'{e}'
-            return error_message
+            self.handle_error(e, command)
+
+    # Execute dsl Function object
+    # Args are python types
+    # Wrapped args are dsl types
+    def call(self, function, context, wrapped_args = [], args = []):
+        try:
+            if not isinstance(function, Callable):
+                raise TypeError((f'{function} is not callable'))
+
+            for arg in args:
+                value = Value(arg)
+                wrapped_args.append(value.wrap())
+
+            return function.execute(wrapped_args, context, self.visit)
+        except Error as e:
+            self.handle_error(e)
+
+
+    def handle_error(self, error:Error, command = None):
+        if error.position:
+            start, end = error.position
+            error_message = f'{error} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, error.position)}'
+        else:
+            error_message = f'{error}'
+        return error_message
 
     # DEBUG FUNCTIONS
     #######################################

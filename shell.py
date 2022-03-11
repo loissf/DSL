@@ -7,9 +7,10 @@ from lexer          import Lexer
 from parser_        import Parser
 from interpreter    import Interpreter
 from context        import *
+from events         import *
 
 from errors         import Error
-from values         import BuiltInFunction, List, Callable, Value, Object
+from values         import BuiltInFunction, List, Callable, Value, Trigger
 
 # BUILT IN FUNCTIONS
 built_ins = SymbolTable()
@@ -31,7 +32,7 @@ built_ins.set('dump', BuiltInFunction.dump)
 # GLOBAL VARIABLES  
 
 built_ins.set('@triggers', List([]))    # @triggers cant be accessed by users, due to @ raising IllegalCharError
-built_ins.set('on_message', 0)
+built_ins.set('on_message', EventType.MESSAGE)
 
 built_ins.set('@guilds', List([]))
 built_ins.set('@direct_messages', List([]))
@@ -69,30 +70,50 @@ class Shell:
             traceback.print_exc()
 
 
-    # Checks the trigger list with the current message and executes the matching ones
-    def input_text(self, text, author = None, context = None):
+    def throw_event(self, event: Event):
         trigger_list = built_ins.get('@triggers').value
-        for element in trigger_list:
-            args = []           # python type values
-            wrapped_args = []   # dsl type values       # values wrapped inside dsl types
-            try:
+        interpreter = Interpreter()
 
-                if element.event == 0:
-                    message_class = self.context.symbol_table.get('Message') # TODO: load core inside built_ins
-                    message_object = self.execute_call(message_class,
-                                                       [text, author, context],
-                                                       self.context)
-                    wrapped_args.append(message_object)
+        matching = []
+        for trigger in trigger_list:
+            if trigger.event == event.type:
+                matching.append(trigger)
+
+        if event.type == EventType.MESSAGE:
+            content, author, context = event.value
+
+            message_args = [content, author, context]
+            message_class = self.context.symbol_table.get('Message') # TODO: load core inside built_ins
+            message_object = interpreter.call(message_class, self.context, wrapped_args=[], args=message_args)
+
+            for trigger in matching:
+                interpreter.call(trigger.function, trigger.trigger_context, wrapped_args=[message_object], args=[])
+
+
+    # Checks the trigger list with the current message and executes the matching ones
+    # def input_text(self, text, author = None, context = None):
+    #     trigger_list = built_ins.get('@triggers').value
+    #     for element in trigger_list:
+    #         args = []           # python type values
+    #         wrapped_args = []   # dsl type values       # values wrapped inside dsl types
+    #         try:
+
+    #             if element.event == 0:
+    #                 message_class = self.context.symbol_table.get('Message') # TODO: load core inside built_ins
+    #                 message_object = self.execute_call(message_class,
+    #                                                    [text, author, context],
+    #                                                    self.context)
+    #                 wrapped_args.append(message_object)
                 
-                self.execute_call(element.function, args, element.trigger_context, wrapped_args)
-                # print(element.function.body_node) # check trigger structure
+    #             self.execute_call(element.function, args, element.trigger_context, wrapped_args)
+    #             # print(element.function.body_node) # check trigger structure
 
-            except Error as e:
-                error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(text, e.position)}```'
-                return error_message
-            except Exception as e:
-                error_message = f'Exception: {e}'
-                return error_message
+    #         except Error as e:
+    #             error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(text, e.position)}```'
+    #             return error_message
+    #         except Exception as e:
+    #             error_message = f'Exception: {e}'
+    #             return error_message
 
 
     # Opens file, if its extension matches .dsl, executes its contents
@@ -114,16 +135,16 @@ class Shell:
 
     # Calls a callable type checking is type and wrapping its arguments into dsl values
     # Can receive already wrapped args optionally
-    def execute_call(self, function, args, context, wrapped_args = None):
-        if not isinstance(function, Callable):
-            raise Error((f'{function} is not callable'))
+    # def execute_call(self, function, args, context, wrapped_args = None):
+    #     if not isinstance(function, Callable):
+    #         raise Error((f'{function} is not callable'))
 
-        if not wrapped_args:
-            wrapped_args = []
-        for arg in args:
-            value = Value(arg)
-            wrapped_args.append(value.wrap())
-        return function.execute(wrapped_args, context)
+    #     if not wrapped_args:
+    #         wrapped_args = []
+    #     for arg in args:
+    #         value = Value(arg)
+    #         wrapped_args.append(value.wrap())
+    #     return function.execute(wrapped_args, context)
     
     # CONTEXT
     #######################################

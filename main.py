@@ -2,6 +2,7 @@ from email.policy import HTTP
 from http.client import HTTPException
 import discord
 from shell import Shell
+from events import *
 
 # Discord bot token
 TOKEN = ''
@@ -61,7 +62,7 @@ def main():
                 author = message.author.nick if message.author.nick else message.author.name
             else:
                 author = message.author.name
-            result = shell.input_text(text, author)
+            result = shell.throw_event(Event(EventType.MESSAGE, (text, author, None)))
             if result:
                 print(f'{message.guild}: #{message.channel} : {text}')
 

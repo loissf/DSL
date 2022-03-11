@@ -1,7 +1,8 @@
-from re import S
+from tkinter import EventType
 import shell
 
 from shell import Shell
+from events import Event, EventType
 
 async def output_callback(value):
     print(value)
@@ -23,7 +24,7 @@ def main():
             else:
                 result = shell.run_command(text)    # user input = $expression
         else:
-            result = shell.input_text(text)         # user input = message
+            result = shell.throw_event(Event(EventType.MESSAGE, (text, 'shell', None)))         # user input = message
 
         if result != 0:
             print(f'{result}')

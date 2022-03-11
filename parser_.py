@@ -276,7 +276,7 @@ class Parser:
                 return VarAssingNode(position, attribute.var_name_token, value_node)
 
             elif attr_type == AttributeAccessNode:
-                return AttributeAssingNode(position, attribute.attribute_node, value_node)
+                return AttributeAssingNode(position, attribute.object_value, attribute.attribute_node, value_node)
                 
             elif attr_type == ListAccessNode:
                 return ListAssingNode(attribute.list_node, attribute.index_node, value_node)
@@ -299,7 +299,7 @@ class Parser:
             if self.current_token.type == TokenType.DOT:
 
                 self.advance()
-                attribute = self.call()
+                attribute = self.attribute()
                 return AttributeAccessNode(position, object_value, attribute)
 
             # ListAccessNode        value[]
@@ -443,7 +443,6 @@ class Parser:
     ######################################################################
     def trigger_def(self):
         event           = None
-        args            = None
         function_node   = None
         condition_node  = None
 

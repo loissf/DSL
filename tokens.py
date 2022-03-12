@@ -13,7 +13,7 @@ class TokenType(Enum):
     MULTIPLY        = 7     # *
     DIVIDE          = 8     # /
     MOD             = 9     # %
-    LPAREN          = 10     # (
+    LPAREN          = 10    # (
     RPAREN          = 11    # )
     LSQUARE         = 12    # [
     RSQUARE         = 13    # [
@@ -29,6 +29,35 @@ class TokenType(Enum):
     DOT             = 23    # .
     EOL             = 24    # end of line
     EOF             = 25    # end of file
+    
+    symbols = {
+        0  : 'int',
+        1  : 'float',
+        2  : 'identifier',
+        3  : 'keyword',
+        4  : '=',
+        5  : '+',
+        6  : '-',
+        7  : '*',
+        8  : '/',
+        9  : '%',
+        10 : '(',
+        11 : ')',
+        12 : '[',
+        13 : ']',
+        14 : '==',
+        15 : '!=',
+        16 : '>',
+        17 : '<',
+        18 : '>=',
+        19 : '<=',
+        20 : 'str',
+        21 : ':',
+        22 : ',',
+        23 : '.',
+        24 : 'eol',
+        25 : 'eof'
+    }
 
 # Groups of token types that are parsed together in the same node
 @dataclass
@@ -65,5 +94,14 @@ class Token:
     def matches(self, type, value):
         return self.type == type and self.value == value
 
+    def symbol(self):
+        if self.type == TokenType.KEYWORD:
+            return self.value
+        else:
+            return TokenType.symbols.value.get(self.type.value)
+
     def __repr__(self):
-        return self.type.name + (f":{self.value}" if self.value != None else "")
+        if self.type == TokenType.KEYWORD:
+            return self.value
+        else:
+            return f'{self.symbol()}:' + f'{self.value}' if self.value else ''

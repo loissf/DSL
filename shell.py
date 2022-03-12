@@ -90,32 +90,6 @@ class Shell:
                 interpreter.call(trigger.function, trigger.trigger_context, wrapped_args=[message_object], args=[])
 
 
-    # Checks the trigger list with the current message and executes the matching ones
-    # def input_text(self, text, author = None, context = None):
-    #     trigger_list = built_ins.get('@triggers').value
-    #     for element in trigger_list:
-    #         args = []           # python type values
-    #         wrapped_args = []   # dsl type values       # values wrapped inside dsl types
-    #         try:
-
-    #             if element.event == 0:
-    #                 message_class = self.context.symbol_table.get('Message') # TODO: load core inside built_ins
-    #                 message_object = self.execute_call(message_class,
-    #                                                    [text, author, context],
-    #                                                    self.context)
-    #                 wrapped_args.append(message_object)
-                
-    #             self.execute_call(element.function, args, element.trigger_context, wrapped_args)
-    #             # print(element.function.body_node) # check trigger structure
-
-    #         except Error as e:
-    #             error_message = f'```{e} in line {e.position.line}, character {e.position.character}\n{self.pointer_string(text, e.position)}```'
-    #             return error_message
-    #         except Exception as e:
-    #             error_message = f'Exception: {e}'
-    #             return error_message
-
-
     # Opens file, if its extension matches .dsl, executes its contents
     # otherwise reads it as text aka console input
     def open_file(self, path):
@@ -133,19 +107,7 @@ class Shell:
                 text = file.read()
                 return self.input_text(text)
 
-    # Calls a callable type checking is type and wrapping its arguments into dsl values
-    # Can receive already wrapped args optionally
-    # def execute_call(self, function, args, context, wrapped_args = None):
-    #     if not isinstance(function, Callable):
-    #         raise Error((f'{function} is not callable'))
 
-    #     if not wrapped_args:
-    #         wrapped_args = []
-    #     for arg in args:
-    #         value = Value(arg)
-    #         wrapped_args.append(value.wrap())
-    #     return function.execute(wrapped_args, context)
-    
     # CONTEXT
     #######################################
     def change_context(self, output_callback, guild = None, channel = None):

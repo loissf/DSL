@@ -1,4 +1,3 @@
-from textwrap import wrap
 import nodes
 import context
 import values
@@ -304,7 +303,7 @@ class Interpreter:
             result = self.visit(ast, context)
             return 0
         except Error as e:
-            self.handle_error(e, command)
+            return self.handle_error(e, command)
 
     # Execute dsl Function object
     # Args are python types

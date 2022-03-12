@@ -26,7 +26,7 @@ class ValueNode(Node):
         self.value = value
     
     def __repr__(self):
-        return f'{self.token.value}'
+        return f'{self.token.symbol()}:{self.token.value}'
 
 @dataclass(repr=False, init=False)
 class IntegerNode(ValueNode):
@@ -171,7 +171,7 @@ class BinOpNode(Node):
         self.right_node = right_node
 
     def __repr__(self):
-        return f'({self.left_node}, {self.op_token}, {self.right_node})'
+        return f'({self.left_node}, {self.op_token.symbol()}, {self.right_node})'
 
 @dataclass
 class UnaryOpNode(Node):
@@ -184,7 +184,7 @@ class UnaryOpNode(Node):
         self.node = node
 
     def __repr__(self):
-        return f'({self.op_token}, {self.node})'
+        return f'({self.op_token.symbol()}, {self.node})'
 
 @dataclass
 class IfNode(Node):
@@ -193,13 +193,16 @@ class IfNode(Node):
     else_case: any = None
 
     def __repr__(self):
-        return f'If {self.condition}: {self.if_case}' if self.else_case == None else f'If {self.condition}: {self.if_case} else: {self.else_case}'
+        return f'IF {self.condition}: {self.if_case}' if self.else_case == None else f'If {self.condition}: {self.if_case} else: {self.else_case}'
 
 @dataclass
 class ForNode(Node):
     body_node: Node
     steps: any
     identifier: Token = None
+
+    def __repr__(self):
+        return f'FOR {self.identifier.value}<{self.steps}: {self.body_node}'
 
 @dataclass
 class FuncDefNode(Node):
@@ -238,4 +241,7 @@ class CallNode(Node):
 class TriggerDefNode(Node):
     body_node: Node
     event: VarAccessNode
+
+    def __repr__(self):
+        return f'TRIGGERS <-{self.event.var_name_token.value}: {self.body_node}'
     

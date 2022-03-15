@@ -1,10 +1,9 @@
-import tokens
-
-from tokens import *
-
-from errors import IllegalCharError, SyntaxError
-
 import string
+
+from tokens import Token, TokenType, Position
+
+from errors import IllegalCharErrorDsl, SyntaxErrorDsl
+
 
 WHITESPACE          = ' \t'
 DIGITS              = '0123456789'
@@ -136,7 +135,7 @@ class Lexer:
             else:
                 char = self.current_char
                 self.advance()
-                raise IllegalCharError(f"'{char}'", (self.position,None))
+                raise IllegalCharErrorDsl(f"'{char}'", (self.position,None))
 
         yield Token(TokenType.EOF, (self.position,None))
         
@@ -175,7 +174,7 @@ class Lexer:
             elif first_op == '<':
                 token = Token(TokenType.LOWER, (start_position, self.position))
             elif first_op == '!':
-                raise SyntaxError('Invalid syntax', (start_position, self.position))
+                raise SyntaxErrorDsl('Invalid syntax', (start_position, self.position))
         elif self.current_char == '=':
             if first_op == '=':
                 token = Token(TokenType.DOUBLE_EQUALS, (start_position, self.position))
@@ -191,42 +190,42 @@ class Lexer:
     
     # Generates string token with all characters found between '"' as value
     def generate_string(self):
-        string = ''
+        string_value = ''
         starting_quote = self.current_char
         start_position = self.position.copy()
         self.advance()
 
-        while self.current_char != None and self.current_char != starting_quote:
+        while self.current_char is not None and self.current_char != starting_quote:
             if self.current_char == '\\':
                 self.advance()
                 if self.current_char == 'n':
-                    string += '\n'
+                    string_value += '\n'
                 elif self.current_char == 't':
-                    string += '\t'
+                    string_value += '\t'
                 elif self.current_char == '\\':
-                    string += '\\'
+                    string_value += '\\'
                 elif self.current_char == '\'':
-                    string += '\''
+                    string_value += '\''
                 else:
-                    raise SyntaxError('Expected \\n , \\t , \\', self.position)
+                    raise SyntaxErrorDsl('Expected \\n , \\t , \\', self.position)
             elif self.current_char == '\n':
                 self.position.line += 1
                 self.position.character = -1
             else:
-                string += self.current_char
+                string_value += self.current_char
             self.advance()
-            if self.current_char == None:
-                raise SyntaxError('Unclosed string literal', (start_position, self.position))
+            if self.current_char is None:
+                raise SyntaxErrorDsl('Unclosed string literal', (start_position, self.position))
         self.advance()
 
-        return Token(TokenType.STRING, (start_position, self.position), string)
+        return Token(TokenType.STRING, (start_position, self.position), string_value)
 
     # Generates identifier all characters, digits and '_' found as value
     def generate_identifier(self):
         identifier = ''
         start_position = self.position.copy()
 
-        while self.current_char != None and self.current_char in LETTERS_DIGITS + '_':
+        while self.current_char is not None and self.current_char in LETTERS_DIGITS + '_':
             identifier += self.current_char
             self.advance()
 

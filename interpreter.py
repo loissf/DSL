@@ -3,11 +3,13 @@ from values     import *
 
 from context    import Context
 
+from tokens     import TokenType
+
 from lexer      import Lexer
 from parser_    import Parser
 
 from errors     import Error
-from errors     import TypeError, IndexError
+from errors     import TypeErrorDsl, IndexErrorDsl
 
 class Interpreter:
 
@@ -41,7 +43,7 @@ class Interpreter:
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
-            raise TypeError(f'{object_value} is not an object', node.position)
+            raise TypeErrorDsl(f'{object_value} is not an object', node.position)
 
         var_name = node.attribute_node.var_name_token.value
 
@@ -55,7 +57,7 @@ class Interpreter:
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
-            raise TypeError(f'{object_value} is not an object', node.position)
+            raise TypeErrorDsl(f'{object_value} is not an object', node.position)
 
         if isinstance(node.attribute_node, AttributeAccessNode):
             var_name = self.visit(node.attribute_node, context).var_name_token.value
@@ -65,7 +67,7 @@ class Interpreter:
         attribute_value = object_value.get(var_name)
 
         if attribute_value == None:
-            raise TypeError(f'{node.attribute_node} is not defined', node.position)
+            raise TypeErrorDsl(f'{node.attribute_node} is not defined', node.position)
 
         return attribute_value
 
@@ -74,7 +76,7 @@ class Interpreter:
         value = context.symbol_table.get(var_name)
 
         if value == None:
-            raise TypeError(f'{var_name} is not defined', node.position)
+            raise TypeErrorDsl(f'{var_name} is not defined', node.position)
 
         return value
 
@@ -82,7 +84,7 @@ class Interpreter:
         var_name = node.var_name_token.value
 
         if not context.symbol_table.exists(var_name):
-            raise TypeError(f'{var_name} is not defined', node.position)
+            raise TypeErrorDsl(f'{var_name} is not defined', node.position)
 
         value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
         context.symbol_table.set(var_name, value)
@@ -130,7 +132,7 @@ class Interpreter:
         list_var: List = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
         if index.value > list_var.get_lenght():
-            raise IndexError(f'index out of range', node.position)
+            raise IndexErrorDsl(f'index out of range', node.position)
 
         return list_var.get_element(index.value)
 
@@ -138,7 +140,7 @@ class Interpreter:
         list_var = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
         if index.value > list_var.getLenght():
-            raise IndexError(f'index out of range', node.position)
+            raise IndexErrorDsl(f'index out of range', node.position)
 
         value = self.visit(node.value_node, context)
         
@@ -207,7 +209,7 @@ class Interpreter:
         function = Function('@trigger_function', node.body_node, args)
 
         trigger = Trigger(event, function, context)
-        trigger_list.value.appendElement(trigger)
+        trigger_list.value.append_element(trigger)
 
         return Null()
 
@@ -227,7 +229,7 @@ class Interpreter:
 
         function = self.visit(node.func_node, context)
         if not isinstance(function, Callable):
-            raise TypeError((f'{node.func_node} is not callable'), node.position)
+            raise TypeErrorDsl((f'{node.func_node} is not callable'), node.position)
         
         for arg_node in node.arg_nodes:
             args.append(self.visit(arg_node, context))
@@ -292,7 +294,7 @@ class Interpreter:
             return Value(result).wrap()
 
         except Exception as e:
-            raise TypeError(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {e}", node.position)
+            raise TypeErrorDsl(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {e}", node.position)
 
 
     def run(self, command, context):
@@ -314,7 +316,7 @@ class Interpreter:
     def call(self, function, context, wrapped_args = [], args = []):
         try:
             if not isinstance(function, Callable):
-                raise TypeError((f'{function} is not callable'))
+                raise TypeErrorDsl((f'{function} is not callable'))
 
             for arg in args:
                 value = Value(arg)
@@ -353,7 +355,7 @@ class Interpreter:
     def parse(self, command, context):
         try:
             lexer = Lexer(command)
-            tokens = lexer.generate_tokens()
+            tokens = lexer.fast_generate_tokens()
 
             parser = Parser(tokens)
             ast = parser.parse()
@@ -376,7 +378,7 @@ class Interpreter:
         elif exists(f'{path}.dsl'):                         # Check if the module exist
             path = f'{path}.dsl'
         else:
-            raise TypeError(f"No script named {file.name} found")
+            raise TypeErrorDsl(f"No script named {file.name} found")
 
         lines = []
         with open(path, 'r') as file:

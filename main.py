@@ -1,12 +1,10 @@
-from email.policy import HTTP
-from http.client import HTTPException
 import discord
 from shell import Shell
-from events import *
+from events import EventType, Event
 
 # Discord bot token
 TOKEN = ''
-with open('TOKEN.txt', 'r') as file:
+with open('TOKEN.txt', 'r', encoding='utf8') as file:
     TOKEN = file.read()
 
 def main():
@@ -30,13 +28,13 @@ def main():
             except discord.errors.HTTPException:
                 await message.channel.send('_ _')   # emtpy message
                 print(f'{message.guild}: #{message.channel} <- {{EMPTY}}')
-                
+
 
         shell = Shell(output_callback, message.guild, message.channel)
 
         text = message.content
         result = None
-        
+
         # Check if input is a command
         # Send a command to the shell
         if text.startswith('$'):
@@ -52,7 +50,7 @@ def main():
                 print(f'{message.guild}: #{message.channel} >> code block:\n{text}')
                 shell.change_context(message.guild, message.channel)
                 result = shell.run_command(text)
-        
+
         # If input is just a message
         # Send a text input to the shell
         else:
@@ -76,7 +74,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-    

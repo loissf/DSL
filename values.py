@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import time
 
 from context import Context, SymbolTable, AccessType
-from errors  import TypeError
+from errors  import TypeErrorDsl
 from events  import EventType
 
 # Parent class for base types that just hold a value
@@ -104,15 +104,15 @@ class Callable:
     # TODO: arg checking and function declaration allow for default argument values
     def check_args(self, args, arg_names):
         if len(args) > len(arg_names):
-            raise TypeError(f'{self.name}() too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
+            raise TypeErrorDsl(f'{self.name}() too many arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
         if len(args) < len(arg_names):
-            raise TypeError(f'{self.name}() too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
+            raise TypeErrorDsl(f'{self.name}() too few arguments, expected {len(arg_names)} but {len(args)} where given: args({arg_names})', None)
 
         for i in range(len(args)):
             arg_name, arg_type = arg_names[i]
 
             if arg_type and arg_type != args[i].type():
-                raise TypeError(f'{self.name}() expected argument type {arg_type}, found {args[i].type()} in {arg_name}', None)
+                raise TypeErrorDsl(f'{self.name}() expected argument type {arg_type}, found {args[i].type()} in {arg_name}', None)
 
     def create_context(self, args, arg_names, parent):
         new_symbol_table = SymbolTable(parent.symbol_table)
@@ -251,7 +251,7 @@ class Class(Callable):
         constructor = instance_context.symbol_table.get_local(self.name)
         if constructor:
             if not isinstance(constructor, Function):
-                raise TypeError(f'{constructor} is not a function, but {type(constructor)} instead')
+                raise TypeErrorDsl(f'{constructor} is not a function, but {type(constructor)} instead')
             constructor.execute(args, instance_context, visit)
 
         return new_object

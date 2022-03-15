@@ -1,9 +1,7 @@
-import tokens
-
-from tokens import *
-from context import AccessType
-
 from dataclasses import dataclass
+
+from tokens import Token, Position
+from context import AccessType
 
 # DEFINITION OF THE ABSTRACT SYNTAX TREE NODES
 # The abstract syntax tree is a node itself, that may have more nodes as parameters
@@ -24,7 +22,7 @@ class ValueNode(Node):
         super().__init__(token.position)
         self.token = token
         self.value = value
-    
+
     def __repr__(self):
         return f'{self.token.symbol()}:{self.token.value}'
 
@@ -106,7 +104,7 @@ class VarDefNode(VarAccessNode):
     access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
-        return super().__repr__() + f'<-VOID'
+        return super().__repr__() + '<-VOID'
 ##################################
 
 
@@ -192,7 +190,7 @@ class IfNode(Node):
     else_case: any = None
 
     def __repr__(self):
-        return f'IF {self.condition}: {self.if_case}' if self.else_case == None else f'If {self.condition}: {self.if_case} else: {self.else_case}'
+        return f'IF {self.condition}: {self.if_case}' if self.else_case is None else f'If {self.condition}: {self.if_case} else: {self.else_case}'
 
 @dataclass
 class ForNode(Node):
@@ -212,7 +210,7 @@ class FuncDefNode(Node):
     access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
-        func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
+        func_name = f'{self.func_name_token.value}' if self.func_name_token is not None else '<anonymus>'
         return f'FUNCTION->{func_name} (args({self.arg_name_tokens}) body({self.body_node}))'
 
 @dataclass
@@ -222,7 +220,7 @@ class ClassDefNode(Node):
     access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
-        class_name = f'{self.class_name_token.value}' if self.class_name_token != None else '<anonymus>'
+        class_name = f'{self.class_name_token.value}' if self.class_name_token is not None else '<anonymus>'
         return f'CLASS->{class_name} body({self.body_node}))'
 
 @dataclass

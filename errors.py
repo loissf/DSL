@@ -8,22 +8,22 @@ class Error(Exception):
     def __str__(self):
         return f'{self.error_name}: {self.details}'
 
-class IllegalCharError(Error):
+class IllegalCharErrorDsl(Error):
     def __init__(self, details, position):
         super().__init__('IllegalCharError', details, position)
 
-class SyntaxError(Error):
+class SyntaxErrorDsl(Error):
     def __init__(self, details, position):
         super().__init__('SyntaxError', details, position)
 
-class TypeError(Error):
+class TypeErrorDsl(Error):
     def __init__(self, details, position):
         super().__init__('TypeError', details, position)
 
-class ZeroDivisionError(Error):
+class ZeroDivisionErrorDsl(Error):
     def __init__(self, details, position):
         super().__init__('ZeroDivisionError', details, position)
 
-class IndexError(Error):
+class IndexErrorDsl(Error):
     def __init__(self, details, position):
         super().__init__('IndexError', details, position)

@@ -1,16 +1,10 @@
-import lexer
-import parser_
-import interpreter
-import context
+import traceback
 
-from lexer          import Lexer, TokenType
-from parser_        import Parser
 from interpreter    import Interpreter
-from context        import *
-from events         import *
+from context        import Context, SymbolTable
+from events         import Event, EventType
 
-from errors         import Error
-from values         import BuiltInFunction, List, Callable, Value, Trigger
+from values         import BuiltInFunction, List
 
 # BUILT IN FUNCTIONS
 built_ins = SymbolTable()
@@ -29,7 +23,7 @@ built_ins.define('dump', BuiltInFunction.dump)
 # BUILT IN FUNCTIONS
 
 
-# GLOBAL VARIABLES  
+# GLOBAL VARIABLES
 
 built_ins.define('@triggers', List([]))    # @triggers cant be accessed by users, due to @ raising IllegalCharError
 built_ins.define('on_message', EventType.MESSAGE)
@@ -43,7 +37,7 @@ built_ins.define('@direct_messages', List([]))
 class Shell:
 
     def __init__(self, output_callback, guild=None, channel=None):
-        
+
         # BUILT INS INITIALIZATION
         self.context = Context('built_ins', built_ins)
         self.open_file('core.dsl')
@@ -56,18 +50,17 @@ class Shell:
         self.output_callback = output_callback
 
         # define CONTEXT
-        self.change_context(output_callback, guild, channel)
+        self.change_context(guild, channel)
 
-    
+
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
         try:
             return Interpreter().run(command, self.context)
-        except Exception as e:
-            import traceback
+        except Exception as error:
             traceback.print_exc()
-            return e
-            
+            return error
+
     def get_tokens(self, command, formatted=False):
         tokens = Interpreter().tokenize(command, self.context)
         return tokens if not formatted else ''.join([str(token)+' ' for token in tokens])
@@ -99,7 +92,7 @@ class Shell:
     # otherwise reads it as text aka console input
     def open_file(self, path):
         lines = []
-        with open(path, 'r') as file:
+        with open(path, 'r', encoding='utf8') as file:
             if file.name.split('.')[1] == 'dsl':
                 lines += file.readlines()
                 program = ''
@@ -108,14 +101,11 @@ class Shell:
                         line = line[0:line.index('#')]
                     program += line
                 return self.run_command(program)
-            else:
-                text = file.read()
-                return self.input_text(text)
 
 
     # CONTEXT
     #######################################
-    def change_context(self, output_callback, guild = None, channel = None):
+    def change_context(self, guild = None, channel = None):
         self.context.output = None
         if guild:
             guild_list = self.shell.symbol_table.get('@guilds').value
@@ -128,7 +118,7 @@ class Shell:
                 guild_context = Context(guild, SymbolTable(self.shell.symbol_table), self.shell)
                 guild_context.symbol_table.define('@channels', List([]))
                 guild_list.append(guild_context)
-        
+
             if channel:
                 channel_list = guild_context.symbol_table.get('@channels').value
                 channel_context = None
@@ -160,18 +150,3 @@ class Shell:
 
         self.context.output = self.output_callback
     #######################################
-
-    # Returns the given text with a pointer towards the character in the given position
-    # May not work with long or multiline statmets
-    def pointer_string(self, text, position):
-        whitespace = [' ']
-        pointer = whitespace * (position.character-1 + len(str(position.line))) + ['^']
-        pointer = ''.join(pointer)
-
-        lines = text.split('\n')
-        lines[position.line] += f'\n{pointer}'
-
-        result = ''
-        for i in range(len(lines)):
-            result += f'{i}  {lines[i]}\n'
-        return result

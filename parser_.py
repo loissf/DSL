@@ -1,8 +1,8 @@
 from nodes  import *
-from tokens import TokenType
+from tokens import TokenType, TypeGroups
 from context import AccessType
 
-from errors import SyntaxError
+from errors import SyntaxErrorDsl
 
 
 class Parser:
@@ -32,7 +32,7 @@ class Parser:
         while self.current_token is not None and not (self.current_token.matches(TokenType.KEYWORD, 'end') or self.current_token.type == TokenType.EOF):
 
             if not self.current_token.type in (TokenType.COMMA, TokenType.EOL):
-                raise SyntaxError("Invalid syntax, expected ',' or end", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ',' or end", self.current_token.position)
 
             if self.current_token.type == TokenType.COMMA:
                 self.advance()
@@ -49,7 +49,7 @@ class Parser:
         if self.current_token.matches(TokenType.KEYWORD, 'end'):
             self.advance()
         elif not self.current_token.type == TokenType.EOF:
-            raise SyntaxError("Invalid syntax, expected end", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected end", self.current_token.position)
 
         return StatmentNode(position, expressions)
 
@@ -75,7 +75,7 @@ class Parser:
             token = self.current_token
             self.advance()
             if self.current_token.type != TokenType.IDENTIFIER:
-                raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected identifier", self.current_token.position)
             value = self.current_token.value
             self.advance()
             while self.current_token.type == TokenType.DOT:
@@ -88,7 +88,7 @@ class Parser:
             self.advance()
             define_node = self.expr()
             if not isinstance(define_node, (VarDefNode, FuncDefNode, ClassDefNode)):
-                raise SyntaxError("Invalid syntax, expected variable, class or function identifier", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected variable, class or function identifier", self.current_token.position)
             define_node.access = AccessType.PRIVATE
             return define_node
 
@@ -191,7 +191,7 @@ class Parser:
             self.advance()
             result = self.expr()
             if self.current_token.type != TokenType.RPAREN:
-                raise SyntaxError("Invalid syntax, expected ')'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ')'", self.current_token.position)
 
             self.advance()
             return result
@@ -240,7 +240,7 @@ class Parser:
                     arg_nodes.append(self.expr())
 
                 if self.current_token.type != TokenType.RPAREN:
-                    raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
+                    raise SyntaxErrorDsl("Invalid syntax, expected ',' or ')'", self.current_token.position)
 
                 self.advance()
             return CallNode(func_node, arg_nodes)
@@ -271,7 +271,7 @@ class Parser:
                 return ListAssingNode(attribute.list_node, attribute.index_node, value_node)
 
             else:
-                raise SyntaxError(f"Invalid syntax, {attr_type} cant be assinged", self.current_token.position)
+                raise SyntaxErrorDsl(f"Invalid syntax, {attr_type} cant be assinged", self.current_token.position)
 
         return attribute
 
@@ -299,7 +299,7 @@ class Parser:
                 self.advance()
 
                 if self.current_token.type == TokenType.RSQUARE:
-                    raise SyntaxError("Invalid syntax, expected value", self.current_token.position)
+                    raise SyntaxErrorDsl("Invalid syntax, expected value", self.current_token.position)
                 else:
                     index = self.expr()
 
@@ -360,7 +360,7 @@ class Parser:
         self.advance()
 
         if self.current_token.type != TokenType.IDENTIFIER:
-            raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected identifier", self.current_token.position)
         var_name = self.current_token
         self.advance()
 
@@ -385,11 +385,11 @@ class Parser:
             func_name_token = self.current_token
             self.advance()
             if self.current_token.type != TokenType.LPAREN:
-                raise SyntaxError("Invalid syntax, expected '('", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected '('", self.current_token.position)
         else:
             func_name_token = None
             if self.current_token.type != TokenType.LPAREN:
-                raise SyntaxError("Invalid syntax, expected identifier or '('", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected identifier or '('", self.current_token.position)
 
         self.advance()
         arg_name_tokens = []
@@ -406,23 +406,23 @@ class Parser:
 
                 argument = self.argument()
                 if not argument:
-                    raise SyntaxError("Invalid syntax, expected identifier", self.current_token.position)
+                    raise SyntaxErrorDsl("Invalid syntax, expected identifier", self.current_token.position)
 
                 name, type = argument
                 arg_name_tokens.append(name)
                 arg_type_tokens.append(type)
 
             if self.current_token.type != TokenType.RPAREN:
-                raise SyntaxError("Invalid syntax, expected ',' or ')'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ',' or ')'", self.current_token.position)
 
         else:
             if self.current_token.type != TokenType.RPAREN:
-                raise SyntaxError("Invalid syntax, expected identifier or ')'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected identifier or ')'", self.current_token.position)
 
         self.advance()
 
         if self.current_token.type != TokenType.COLON:
-            raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
 
         self.advance()
 
@@ -439,7 +439,7 @@ class Parser:
             if self.current_token.type == TokenType.COLON:
                 self.advance()
                 if self.current_token.type != TokenType.IDENTIFIER:
-                    raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+                    raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
                 arg_type_token = self.current_token
                 self.advance()
             return arg_name_token, arg_type_token
@@ -461,21 +461,21 @@ class Parser:
             event = VarAccessNode(self.current_token)
             self.advance()
             if self.current_token.type != TokenType.LPAREN:
-                raise SyntaxError("Invalid syntax, expected '('", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected '('", self.current_token.position)
         else:
-            raise SyntaxError("Invalid syntax, expected event type", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected event type", self.current_token.position)
 
         self.advance()
 
         condition_node = self.logic_op()
 
         if self.current_token.type != TokenType.RPAREN:
-            raise SyntaxError("Invalid syntax, expected ')'", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ')'", self.current_token.position)
 
         self.advance()
 
         if self.current_token.type != TokenType.COLON:
-            raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
 
         self.advance()
 
@@ -499,11 +499,11 @@ class Parser:
             class_name_token = self.current_token
             self.advance()
             if self.current_token.type != TokenType.COLON:
-                raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
         else:
             class_name_token = None
             if self.current_token.type != TokenType.COLON:
-                raise SyntaxError("Invalid syntax, expected identifier or ':'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected identifier or ':'", self.current_token.position)
 
         self.advance()
 
@@ -523,19 +523,19 @@ class Parser:
         condition = self.logic_op()
 
         if self.current_token.type != TokenType.COLON:
-            raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
 
         self.advance()
         if_case = self.statment()
 
         if if_case is None:
-            raise SyntaxError("Invalid syntax, expected expression", self.current_token.position)
+            raise SyntaxErrorDsl("Invalid syntax, expected expression", self.current_token.position)
 
         if self.current_token is not None and self.current_token.matches(TokenType.KEYWORD, 'else'):
             self.advance()
 
             if self.current_token.type != TokenType.COLON:
-                raise SyntaxError("Invalid syntax, expected ':'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ':'", self.current_token.position)
 
             self.advance()
             else_case = self.statment()
@@ -557,13 +557,13 @@ class Parser:
             identifier = self.current_token
             self.advance()
             if self.current_token.type != TokenType.COMMA:
-                raise SyntaxError("Invalid syntax, expected ','", position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ','", position)
             self.advance()
 
         steps = self.arith_op()
 
         if self.current_token.type != TokenType.COLON:
-            raise SyntaxError("Invalid syntax, expected ','", position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ','", position)
         self.advance()
 
         body_node = self.statment()
@@ -588,7 +588,7 @@ class Parser:
                 element_nodes.append(self.expr())
 
             if self.current_token.type != TokenType.RSQUARE:
-                raise SyntaxError("Invalid syntax, expected ',' or ']'", self.current_token.position)
+                raise SyntaxErrorDsl("Invalid syntax, expected ',' or ']'", self.current_token.position)
 
             self.advance()
         return ListNode(position, element_nodes)
@@ -603,6 +603,6 @@ class Parser:
         result = self.statment()
 
         if not self.current_token.type == TokenType.EOF:
-            raise SyntaxError(f"Invalid syntax {result}", self.current_token.position)
+            raise SyntaxErrorDsl(f"Invalid syntax {result}", self.current_token.position)
 
         return result

@@ -1,11 +1,9 @@
-import context
-import interpreter as inter
+from dataclasses import dataclass
+import time
 
-from context import *
+from context import Context, SymbolTable, AccessType
 from errors  import TypeError
 from events  import EventType
-
-from dataclasses import dataclass
 
 # Parent class for base types that just hold a value
 @dataclass
@@ -15,7 +13,7 @@ class Value:
     def __repr__(self):
         return f'{self.value}'
 
-    # Method that returns the value wrapped in the proper vale type     # TODO: list type
+    # Method that returns the value wrapped in the proper vale type
     def wrap(self):
         value_type = type(self.value)
         if value_type == int:
@@ -26,8 +24,13 @@ class Value:
             return String(self.value)
         elif value_type == bool:
             return Boolean(self.value)
+        elif value_type == list:
+            return List(self.value)
         elif self.value == None:
-            return Null() 
+            return Null()
+
+    def equals(self, value):
+        return self.value == value.value if isinstance(value, Value) else False
 
     def type(self):
         return 'value'
@@ -65,29 +68,29 @@ class Boolean(Value):
 class Null(Value):
     value: None
     def __init__(self):
-        self.value = None
+        super().__init__(None)
 
     def type(self):
         return 'value'
 
     def __repr__(self):
-        return f'null'
+        return 'null'
 
 # Type of value that stores a list of elements
 @dataclass(repr=False)
 class List(Value):
     value: any # list
 
-    def getElement(self, index):
+    def get_element(self, index):
         return self.value[int(index)]
-        
-    def setElement(self, index, value):
+
+    def set_element(self, index, value):
         self.value[int(index)] = value
 
-    def appendElement(self, value):
+    def append_element(self, value):
         self.value.append(value)
 
-    def getLenght(self):
+    def get_lenght(self):
         return len(self.value)
 
     def type(self):
@@ -117,8 +120,8 @@ class Callable:
         for i in range(len(args)):
             arg_name, arg_type = arg_names[i]
             arg_value = args[i]
-            
-            new_symbol_table.set(arg_name, arg_value)
+
+            new_symbol_table.define(arg_name, arg_value)
 
         new_context = Context(self.name, new_symbol_table, parent)
         return new_context
@@ -132,10 +135,10 @@ class Function(Callable):
     body_node: any
     arg_names: list[tuple]
     context: Context = None
-    
+
     def execute(self, args, context: Context, visit):
 
-        call_context = context if self.context == None else self.context
+        call_context = context if self.context is None else self.context
         self.check_args(args, self.arg_names)
         new_context = self.create_context(args, self.arg_names, call_context)
 
@@ -150,7 +153,7 @@ class Function(Callable):
 class BuiltInFunction(Callable):
 
     def execute(self, args, context: Context, visit = None):
-        
+
         method_name = f'execute_{self.name}'
         method = getattr(self, method_name)
 
@@ -165,7 +168,7 @@ class BuiltInFunction(Callable):
         context.send_output(value)
         return Null()
     execute_write.arg_names = [('value', None)]
-        
+
     def execute_context(self, context: Context):
         context.send_output(f'{context.parent.get_hierarchy()}')
         return Null()
@@ -203,12 +206,11 @@ class BuiltInFunction(Callable):
     execute_string.arg_names = [('value', None)]
 
     def execute_length(self, context: Context):
-        list = context.symbol_table.get('list').value
-        return Integer(len(list))
+        value = context.symbol_table.get('list').value
+        return Integer(len(value))
     execute_length.arg_names = ['list']
 
     def execute_time(self, context: Context):
-        import time
         return Float(time.time())
     execute_time.arg_names = []
 
@@ -238,21 +240,21 @@ class Class(Callable):
     body_node: any
 
     def execute(self, args, context: Context, visit):
-        
+
         new_symbol_table = SymbolTable(context.symbol_table)
         instance_context = Context(self.name, new_symbol_table, context)
-                                           
+
         visit(self.body_node, instance_context)
 
-        new_object = Object(self.name, instance_context)                                 
+        new_object = Object(self.name, instance_context)
 
-        constructor = instance_context.symbol_table.get(self.name, True)                
+        constructor = instance_context.symbol_table.get_local(self.name)
         if constructor:
             if not isinstance(constructor, Function):
-                raise Exception(f'{constructor} is not a function')
+                raise TypeError(f'{constructor} is not a function, but {type(constructor)} instead')
             constructor.execute(args, instance_context, visit)
+
         return new_object
-        
 
     def __repr__(self):
         return f'<class {self.name}>'
@@ -266,19 +268,24 @@ class Object:
     def __init__(self, class_name: str, object_context: Context):
         self.class_name = class_name
         self.object_context = object_context
-        self.object_context.symbol_table.set('this', self)
-    
-    def getAttribute(self, attr):
-        return self.object_context.symbol_table.get(attr)
 
-    def setAttribute(self, attr, value):
-        self.object_context.symbol_table.set(attr, value)
+        self.object_context.symbol_table.define('this', self)
 
-    def getAttributes(self):
-        return self.object_context.symbol_table.symbols
+    def get(self, name):
+        table = self.object_context.symbol_table
+        if table.get_access(name) == AccessType.PUBLIC:
+            return table.get_local(name)
+
+    def set(self, name, value):
+        table = self.object_context.symbol_table
+        if table.get_access(name) == AccessType.PUBLIC:
+            return table.set(name, value)
 
     def type(self):
         return f'{self.class_name}'
+
+    def copy(self):
+        return Object(self.class_name, self.object_context)
 
     def __repr__(self):
         return f'<{self.class_name} object>'

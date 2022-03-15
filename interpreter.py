@@ -1,20 +1,16 @@
-import nodes
-import context
-import values
-
 from nodes      import *
-from context    import *
 from values     import *
+
+from context    import Context
 
 from lexer      import Lexer
 from parser_    import Parser
-from errors     import Error
 
-from tokens     import TypeGroups
+from errors     import Error
 from errors     import TypeError, IndexError
 
 class Interpreter:
-    
+
     # Each visit method returns either a value or the result of another visit method
     # meaning the interpreter goes down the tree until it finds a value
 
@@ -23,60 +19,66 @@ class Interpreter:
         method = getattr(self, f'visit_{type(node).__name__}')
         return method(node, context)
 
-    def visit_NoneType(self, node, context):
-        return Null()         # A visit to this node probably means something went wrong, otherwise Nonetype value should be wrapped in a Null type
+    def visit_NoneType(self, node, context: Context):
+        return Null()         # A visit to this node probably means something went wrong
 
-    def visit_IntegerNode(self, node, context):
+    def visit_IntegerNode(self, node: IntegerNode, context: Context):
         return Integer(node.value)
 
-    def visit_FloatNode(self, node, context):
+    def visit_FloatNode(self, node: FloatNode, context: Context):
         return Float(node.value)
 
-    def visit_StringNode(self, node, context):
+    def visit_StringNode(self, node: StringNode, context: Context):
         return String(node.value)
 
-    def visit_BooleanNode(self, node, context):
+    def visit_BooleanNode(self, node: BooleanNode, context: Context):
         return Boolean(node.value)
-    
-    def visit_VoidNode(self, node, context):
+
+    def visit_VoidNode(self, node: VoidNode, context: Context):
         return Null()
 
-    def visit_AttributeAssingNode(self, node, context):
+    def visit_AttributeAssingNode(self, node: AttributeAssingNode, context: Context):
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
             raise TypeError(f'{object_value} is not an object', node.position)
 
-        var_name = node.attribute_node.var_name_token
+        var_name = node.attribute_node.var_name_token.value
+
         value = self.visit(node.value_node, context)
 
-        self.visit(VarAssingNode(node.position, var_name, value), object_value.object_context)
+        object_value.set(var_name, value)
 
         return Null()
 
-    def visit_AttributeAccessNode(self, node, context):
+    def visit_AttributeAccessNode(self, node: AttributeAccessNode, context: Context):
         object_value = self.visit(node.object_value, context)
 
         if not isinstance(object_value, Object):
             raise TypeError(f'{object_value} is not an object', node.position)
 
-        attribute_value = self.visit(node.attribute_node, object_value.object_context)
-        
+        if isinstance(node.attribute_node, AttributeAccessNode):
+            var_name = self.visit(node.attribute_node, context).var_name_token.value
+        else:
+            var_name = node.attribute_node.var_name_token.value
+
+        attribute_value = object_value.get(var_name)
+
         if attribute_value == None:
             raise TypeError(f'{node.attribute_node} is not defined', node.position)
 
         return attribute_value
 
-    def visit_VarAccessNode(self, node, context):
+    def visit_VarAccessNode(self, node: VarAccessNode, context: Context):
         var_name = node.var_name_token.value
         value = context.symbol_table.get(var_name)
- 
+
         if value == None:
             raise TypeError(f'{var_name} is not defined', node.position)
 
         return value
 
-    def visit_VarAssingNode(self, node, context: Context):
+    def visit_VarAssingNode(self, node: VarAssingNode, context: Context):
         var_name = node.var_name_token.value
 
         if not context.symbol_table.exists(var_name):
@@ -87,17 +89,18 @@ class Interpreter:
 
         return Null()
 
-    def visit_VarDefineNode(self, node, context):
+    def visit_VarDefNode(self, node: VarDefNode, context: Context):
         var_name = node.var_name_token.value
         if node.value_node:
-            value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
+            value = self.visit(node.value_node, context) if not isinstance(node.value_node, Callable) else node.value_node
         else:
             value = Null()
-        context.symbol_table.set(var_name, value)
+
+        context.symbol_table.define(var_name, value, node.access)
 
         return Null()
 
-    def visit_ListNode(self, node, context):
+    def visit_ListNode(self, node: ListNode, context: Context):
         elements = []
 
         for element_node in node.element_nodes:
@@ -105,7 +108,7 @@ class Interpreter:
         
         return List(elements)
 
-    def visit_StatmentNode(self, node, context):
+    def visit_StatmentNode(self, node: StatmentNode, context: Context):
         return_value = None
 
         for element_node in node.element_nodes:
@@ -115,23 +118,23 @@ class Interpreter:
 
         return return_value if return_value else Null()
 
-    def visit_ImportNode(self, node, context):
+    def visit_ImportNode(self, node: ImportNode, context: Context):
         value = node.value
         self.import_file(value, context)
         return Null()
-    
-    def visit_ReturnNode(self, node, context):
+
+    def visit_ReturnNode(self, node: ReturnNode, context: Context):
         return self.visit(node.value_node, context)
 
-    def visit_ListAccessNode(self, node, context):
+    def visit_ListAccessNode(self, node: ListAccessNode, context: Context):
         list_var: List = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
-        if index.value > list_var.getLenght():
+        if index.value > list_var.get_lenght():
             raise IndexError(f'index out of range', node.position)
 
-        return list_var.getElement(index.value)
-    
-    def visit_ListAssingNode(self, node, context):
+        return list_var.get_element(index.value)
+
+    def visit_ListAssingNode(self, node: ListAssingNode, context: Context):
         list_var = self.visit(node.list_node, context)
         index = self.visit(node.index_node, context)
         if index.value > list_var.getLenght():
@@ -142,7 +145,7 @@ class Interpreter:
         list_var.setElement(index.value, value)
         return Null()
 
-    def visit_IfNode(self, node, context):
+    def visit_IfNode(self, node: IfNode, context: Context):
         condition_value = self.visit(node.condition, context)
         if condition_value == Boolean(True):
             if_case_value = self.visit(node.if_case, context)
@@ -155,12 +158,12 @@ class Interpreter:
 
         return Null()
 
-    def visit_ForNode(self, node, context):
+    def visit_ForNode(self, node: ForNode, context: Context):
         steps = node.steps
         identifier = node.identifier
         body_node = node.body_node
 
-        context.symbol_table.set(identifier.value, Integer(0))
+        context.symbol_table.define(identifier.value, Integer(0))
         for i in range(self.visit(steps, context).value):
             context.symbol_table.set(identifier.value, Integer(i))
             self.visit(body_node, context)
@@ -168,7 +171,7 @@ class Interpreter:
 
         return Null()
 
-    def visit_FuncDefNode(self, node: FuncDefNode, context):
+    def visit_FuncDefNode(self, node: FuncDefNode, context: Context):
         func_name = node.func_name_token.value if node.func_name_token else None
         body_node = node.body_node
 
@@ -182,13 +185,13 @@ class Interpreter:
         function = Function(func_name, body_node, args, context)
 
         if node.func_name_token:
-            context.symbol_table.set(func_name, function)
+            return self.visit(VarDefNode(node.position, node.func_name_token, value_node=function, access=node.access), context)
+        else:
+            return function
 
-        return Null()
+    def visit_TriggerDefNode(self, node: TriggerDefNode, context: Context):
+        trigger_list = context.get_root_context().symbol_table.parent.symbols.get('@triggers')
 
-    def visit_TriggerDefNode(self, node, context):
-        trigger_list = context.get_root_context().symbol_table.parent.get('@triggers', True)
-    
         event = self.visit(node.event, context)
 
         args = []
@@ -200,26 +203,26 @@ class Interpreter:
             pass
         else:
             pass
-        
+
         function = Function('@trigger_function', node.body_node, args)
 
         trigger = Trigger(event, function, context)
-        trigger_list.appendElement(trigger)
+        trigger_list.value.appendElement(trigger)
 
         return Null()
 
-    def visit_ClassDefNode(self, node, context):
+    def visit_ClassDefNode(self, node: ClassDefNode, context: Context):
         class_name = node.class_name_token.value if node.class_name_token else None
         body_node = node.body_node
-        
+
         new_class = Class(class_name, body_node)
 
         if node.class_name_token:
-            context.symbol_table.set(class_name, new_class)
-        
-        return Null()
+            return self.visit(VarDefNode(node.position, node.class_name_token, value_node=new_class, access=node.access), context)
+        else:
+            return new_class
 
-    def visit_CallNode(self, node, context):
+    def visit_CallNode(self, node: CallNode, context: Context):
         args = []
 
         function = self.visit(node.func_node, context)
@@ -231,8 +234,8 @@ class Interpreter:
             
         result = function.execute(args, context, self.visit)
         return result
-            
-    def visit_UnaryOpNode(self, node, context):
+
+    def visit_UnaryOpNode(self, node: UnaryOpNode, context: Context):
         if node.op_token.type == TokenType.MINUS:
             value = self.visit(node.node, context).value
             result = -value
@@ -242,7 +245,7 @@ class Interpreter:
             result = not value
             return Boolean(result)
 
-    def visit_BinOpNode(self, node, context):
+    def visit_BinOpNode(self, node: BinOpNode, context: Context):
         right = self.visit(node.right_node, context)
         left = self.visit(node.left_node, context)
         op_token = node.op_token
@@ -287,7 +290,7 @@ class Interpreter:
 
             # Wrapping the result in the corresponding value type
             return Value(result).wrap()
-            
+
         except Exception as e:
             raise TypeError(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {e}", node.position)
 
@@ -345,7 +348,7 @@ class Interpreter:
             else:
                 error_message = f'{e}'
             return error_message
-    
+
     # Returns the abstract syntax tree
     def parse(self, command, context):
         try:
@@ -355,12 +358,12 @@ class Interpreter:
             parser = Parser(tokens)
             ast = parser.parse()
             return ast
-        except Error as e:
-            if e.position:
-                start, end = e.position
-                error_message = f'{e} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, e.position)}'
+        except Error as error:
+            if error.position:
+                start, end = error.position
+                error_message = f'{error} at line {start.line} {f", character {start.character}" if not end else ""}\n{self.pointer_string(command, error.position)}'
             else:
-                error_message = f'{e}'
+                error_message = f'{error}'
             return error_message
     #########################################
 
@@ -388,13 +391,19 @@ class Interpreter:
                 print(result)
             return result
 
-    
+
     # Returns the given text with a pointer towards the character in the given position
     # May not work with long or multiline statmets
     def pointer_string(self, text, position):
         start, end = position
-
         lines = text.split('\n')
+
+        if start.line > len(text):                  # TODO: change this crappy fix
+            result = ''
+            for i in range(len(lines)):
+                result += f'{i}  {lines[i]}\n'
+            return result
+
 
         whitespace  = [' ']
         pointer     = None

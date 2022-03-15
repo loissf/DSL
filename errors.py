@@ -1,5 +1,6 @@
-class Error(BaseException):
+class Error(Exception):
     def __init__(self, error_name, details, position = None):
+        super().__init__()
         self.error_name = error_name
         self.details = details
         self.position = position

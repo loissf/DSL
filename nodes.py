@@ -1,6 +1,7 @@
 import tokens
 
 from tokens import *
+from context import AccessType
 
 from dataclasses import dataclass
 
@@ -11,7 +12,6 @@ from dataclasses import dataclass
 @dataclass
 class Node:
     position: tuple[Position, Position]
-
 
 # VALUES
 ##################################
@@ -78,7 +78,7 @@ class ImportNode(Node):
 @dataclass
 class ReturnNode(Node):
     value_node: Node
-
+    value_node: Node
 
 # VARIABLES
 ##################################
@@ -95,16 +95,15 @@ class VarAccessNode(Node):
 
 @dataclass
 class VarAssingNode(VarAccessNode):
-    var_name_token: Token
     value_node: Node
 
     def __repr__(self):
         return super().__repr__() + f'<-{self.value_node}'
 
 @dataclass
-class VarDefineNode(VarAccessNode):
-    var_name_token: Token
+class VarDefNode(VarAccessNode):
     value_node: Node = None
+    access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
         return super().__repr__() + f'<-VOID'
@@ -210,6 +209,7 @@ class FuncDefNode(Node):
     func_name_token: Token = None
     arg_name_tokens: list = None
     arg_type_tokens: list = None
+    access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
         func_name = f'{self.func_name_token.value}' if self.func_name_token != None else '<anonymus>'
@@ -219,6 +219,7 @@ class FuncDefNode(Node):
 class ClassDefNode(Node):
     body_node: Node
     class_name_token: Token = None
+    access: AccessType = AccessType.PUBLIC
 
     def __repr__(self):
         class_name = f'{self.class_name_token.value}' if self.class_name_token != None else '<anonymus>'

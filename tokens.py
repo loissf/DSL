@@ -29,8 +29,8 @@ class TokenType(Enum):
     DOT             = 23    # .
     EOL             = 24    # end of line
     EOF             = 25    # end of file
-    
-    symbols = {
+
+    SYMBOLS = {
         0  : 'int',
         1  : 'float',
         2  : 'identifier',
@@ -59,6 +59,9 @@ class TokenType(Enum):
         25 : 'eof'
     }
 
+    def symbol(value):
+        return TokenType.SYMBOLS.value.get(value)
+
 # Groups of token types that are parsed together in the same node
 @dataclass
 class TypeGroups:
@@ -83,7 +86,7 @@ class Position:
     def copy(self):
         return Position(self.character, self.line)
 
-# Holds the type and value of a token 
+# Holds the type and value of a token
 # Holds the position in the program string for display in case of an error
 @dataclass
 class Token:
@@ -97,11 +100,10 @@ class Token:
     def symbol(self):
         if self.type == TokenType.KEYWORD:
             return self.value
-        else:
-            return TokenType.symbols.value.get(self.type.value)
-
-    def __repr__(self):
-        if self.type == TokenType.KEYWORD:
+        elif self.type == TokenType.IDENTIFIER:
             return self.value
         else:
-            return f'{self.symbol()}:' + f'{self.value}' if self.value else ''
+            return TokenType.symbol(self.type.value)
+
+    def __repr__(self):
+        return self.symbol() if self.type != TokenType.EOL else '\n'

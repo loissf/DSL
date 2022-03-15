@@ -3,7 +3,7 @@ import parser_
 import interpreter
 import context
 
-from lexer          import Lexer
+from lexer          import Lexer, TokenType
 from parser_        import Parser
 from interpreter    import Interpreter
 from context        import *
@@ -15,27 +15,27 @@ from values         import BuiltInFunction, List, Callable, Value, Trigger
 # BUILT IN FUNCTIONS
 built_ins = SymbolTable()
 
-built_ins.set('write', BuiltInFunction.write)
-built_ins.set('context', BuiltInFunction.context)
-built_ins.set('symbols', BuiltInFunction.symbols)
-built_ins.set('triggers', BuiltInFunction.triggers)
-built_ins.set('substring', BuiltInFunction.substring)
-built_ins.set('contains', BuiltInFunction.contains)
-built_ins.set('string', BuiltInFunction.string)
-built_ins.set('length', BuiltInFunction.length)
-built_ins.set('time', BuiltInFunction.time)
-built_ins.set('dump', BuiltInFunction.dump)
+built_ins.define('write', BuiltInFunction.write)
+built_ins.define('context', BuiltInFunction.context)
+built_ins.define('symbols', BuiltInFunction.symbols)
+built_ins.define('triggers', BuiltInFunction.triggers)
+built_ins.define('substring', BuiltInFunction.substring)
+built_ins.define('contains', BuiltInFunction.contains)
+built_ins.define('string', BuiltInFunction.string)
+built_ins.define('length', BuiltInFunction.length)
+built_ins.define('time', BuiltInFunction.time)
+built_ins.define('dump', BuiltInFunction.dump)
 
 # BUILT IN FUNCTIONS
 
 
 # GLOBAL VARIABLES  
 
-built_ins.set('@triggers', List([]))    # @triggers cant be accessed by users, due to @ raising IllegalCharError
-built_ins.set('on_message', EventType.MESSAGE)
+built_ins.define('@triggers', List([]))    # @triggers cant be accessed by users, due to @ raising IllegalCharError
+built_ins.define('on_message', EventType.MESSAGE)
 
-built_ins.set('@guilds', List([]))
-built_ins.set('@direct_messages', List([]))
+built_ins.define('@guilds', List([]))
+built_ins.define('@direct_messages', List([]))
 
 # GLOBAL VARIABLES
 
@@ -55,20 +55,25 @@ class Shell:
         # CALLBACK
         self.output_callback = output_callback
 
-        # SET CONTEXT
+        # define CONTEXT
         self.change_context(output_callback, guild, channel)
 
     
     # Executes a command and returns either the console output or an error message
     def run_command(self, command):
-        interpreter = Interpreter()
-
         try:
-            return interpreter.run(command, self.context)
+            return Interpreter().run(command, self.context)
         except Exception as e:
             import traceback
             traceback.print_exc()
+            return e
+            
+    def get_tokens(self, command, formatted=False):
+        tokens = Interpreter().tokenize(command, self.context)
+        return tokens if not formatted else ''.join([str(token)+' ' for token in tokens])
 
+    def get_ast(self, command):
+        return Interpreter().parse(command, self.context)
 
     def throw_event(self, event: Event):
         trigger_list = built_ins.get('@triggers').value
@@ -121,7 +126,7 @@ class Shell:
                     # break
             if not guild_context:
                 guild_context = Context(guild, SymbolTable(self.shell.symbol_table), self.shell)
-                guild_context.symbol_table.set('@channels', List([]))
+                guild_context.symbol_table.define('@channels', List([]))
                 guild_list.append(guild_context)
         
             if channel:

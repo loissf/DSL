@@ -2,3 +2,4 @@ TODO
 TOKEN.txt
 test_script.dsl
 __pycache__/
+tests.py

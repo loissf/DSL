@@ -29,7 +29,8 @@ KEYWORDS = [
     'void',
     'trigger',
     'return',
-    'import'
+    'import',
+    'private'
 ]
 
 class Lexer:

@@ -1,6 +1,3 @@
-from tkinter import EventType
-import shell
-
 from shell import Shell
 from events import Event, EventType
 

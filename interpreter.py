@@ -73,19 +73,19 @@ class Interpreter:
 
     def visit_VarAccessNode(self, node: VarAccessNode, context: Context):
         var_name = node.var_name_token.value
+
         value = context.symbol_table.get(var_name)
-
-        if value == None:
+        if value:
+            return value
+        else:
             raise TypeErrorDsl(f'{var_name} is not defined', node.position)
-
-        return value
 
     def visit_VarAssingNode(self, node: VarAssingNode, context: Context):
         var_name = node.var_name_token.value
 
         if not context.symbol_table.exists(var_name):
             raise TypeErrorDsl(f'{var_name} is not defined', node.position)
-
+        
         value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
         context.symbol_table.set(var_name, value)
 
@@ -165,9 +165,10 @@ class Interpreter:
         identifier = node.identifier
         body_node = node.body_node
 
-        context.symbol_table.define(identifier.value, Integer(0))
+        index = Integer(0)
+        context.symbol_table.define(identifier.value, index)
         for i in range(self.visit(steps, context).value):
-            context.symbol_table.set(identifier.value, Integer(i))
+            index.value = i
             self.visit(body_node, context)
         context.symbol_table.remove(identifier.value)
 
@@ -239,12 +240,10 @@ class Interpreter:
 
     def visit_UnaryOpNode(self, node: UnaryOpNode, context: Context):
         if node.op_token.type == TokenType.MINUS:
-            value = self.visit(node.node, context).value
-            result = -value
+            result = - self.visit(node.node, context).value
             return Value(result).wrap()
         if node.op_token.type.matches(TokenType.KEYWORD, 'not'):
-            value = self.visit(node.node, context)
-            result = not value
+            result = not self.visit(node.node, context)
             return Boolean(result)
 
     def visit_BinOpNode(self, node: BinOpNode, context: Context):
@@ -293,8 +292,8 @@ class Interpreter:
             # Wrapping the result in the corresponding value type
             return Value(result).wrap()
 
-        except Exception as e:
-            raise TypeErrorDsl(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {e}", node.position)
+        except Exception as error:
+            raise TypeErrorDsl(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {error}", node.position)
 
 
     def run(self, command, context):
@@ -307,8 +306,8 @@ class Interpreter:
             
             result = self.visit(ast, context)
             return 0
-        except Error as e:
-            return self.handle_error(e, command)
+        except Error as error:
+            return self.handle_error(error, command)
 
     # Execute dsl Function object
     # Args are python types

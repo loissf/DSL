@@ -60,7 +60,7 @@ class SymbolTable:
     def __repr__(self):
         table = ''
         for symbol in self.symbols:
-            variable = self.symbols.get(symbol)
+            variable = self.symbols[symbol]
             table += f'{str.lower(variable.access.name)}:' if variable.access != AccessType.PUBLIC else ''
             table += f'{symbol}'
             table += f'<-{variable.value}'

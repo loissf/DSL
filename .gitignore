@@ -3,3 +3,4 @@ TOKEN.txt
 test_script.dsl
 __pycache__/
 tests.py
+stress_test.dsl

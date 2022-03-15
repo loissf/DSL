@@ -7,9 +7,9 @@ function compt_pi(n):
     var s = 0
     var sign = 1
     for i, n:
-        var s = s + ( sign * (4/k) )
-        var sign = sign * -1
-        var k = k + 2
+        s = s + ( sign * (4/k) )
+        sign = sign * -1
+        k = k + 2
     end
     return s
 end
@@ -19,9 +19,9 @@ function fibonacci(n):
     var s1 = 0
     var s2 = 1
     for i, n:
-        var s = s1 + s2
-        var s2 = s1
-        var s1 = s
+        s = s1 + s2
+        s2 = s1
+        s1 = s
     end
     return s
 end
@@ -56,9 +56,9 @@ function sin(angle):
     var s = 0
     var sign = 1
     for i, n:
-        var s = s + ( sign * ( pow(x, k) / factorial(k) ) )
-        var sign = sign * -1
-        var k = k + 2
+        s = s + ( sign * ( pow(x, k) / factorial(k) ) )
+        sign = sign * -1
+        k = k + 2
     end
     return s
 end
@@ -72,9 +72,9 @@ function cos(angle):
     var s = 0
     var sign = 1
     for i, n:
-        var s = s + ( sign * ( pow(x, k) / factorial(k) ) )
-        var sign = sign * -1
-        var k = k + 2
+        s = s + ( sign * ( pow(x, k) / factorial(k) ) )
+        sign = sign * -1
+        k = k + 2
     end
     return s
 end

@@ -16,17 +16,17 @@ class Value:
     # Method that returns the value wrapped in the proper vale type
     def wrap(self):
         value_type = type(self.value)
-        if value_type == int:
+        if value_type is int:
             return Integer(self.value)
-        elif value_type == float:
+        elif value_type is float:
             return Float(self.value)
-        elif value_type == str:
+        elif value_type is str:
             return String(self.value)
-        elif value_type == bool:
+        elif value_type is bool:
             return Boolean(self.value)
-        elif value_type == list:
+        elif value_type is list:
             return List(self.value)
-        elif self.value == None:
+        elif self.value is None:
             return Null()
 
     def equals(self, value):

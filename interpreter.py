@@ -84,7 +84,7 @@ class Interpreter:
         var_name = node.var_name_token.value
 
         if not context.symbol_table.exists(var_name):
-            raise TypeErrorDsl(f'{var_name} is not defined', node.position)
+            raise TypeErrorDsl(f'{var_name} is not defined', None, node.position)
         
         value = self.visit(node.value_node, context) if not isinstance(node.value_node, Value) else node.value_node
         context.symbol_table.set(var_name, value)
@@ -241,7 +241,7 @@ class Interpreter:
     def visit_UnaryOpNode(self, node: UnaryOpNode, context: Context):
         if node.op_token.type == TokenType.MINUS:
             result = - self.visit(node.node, context).value
-            return Value(result).wrap()
+            return Integer(result) if type(result) == int else Float(result)
         if node.op_token.type.matches(TokenType.KEYWORD, 'not'):
             result = not self.visit(node.node, context)
             return Boolean(result)
@@ -269,6 +269,9 @@ class Interpreter:
             elif op_token.type == TokenType.MOD:
                 result = left.value % right.value
 
+            if result:
+                return Integer(result) if type(result) == int else Float(result)
+
             # COMPARATION OPERATIONS
             elif op_token.type == TokenType.DOUBLE_EQUALS:
                 result = left.value == right.value
@@ -289,8 +292,20 @@ class Interpreter:
             elif op_token.matches(TokenType.KEYWORD, 'or'):
                 result = left.value or right.value
 
-            # Wrapping the result in the corresponding value type
-            return Value(result).wrap()
+            result_type = type(result)
+            if result_type == int:
+                return Integer(result)
+            elif result_type == float:
+                return Float(result)
+            elif result_type == bool:
+                return Boolean(result)
+            elif result_type == str:
+                return String(result)
+            else:
+                return Value(result).wrap()
+
+            # # Wrapping the result in the corresponding value type
+            # return Value(result).wrap()
 
         except Exception as error:
             raise TypeErrorDsl(f"Runtime math error: {left.type()}:{left.value} {op_token} {right.type()}:{right.value} {error}", node.position)

@@ -15,19 +15,7 @@ class Value:
 
     # Method that returns the value wrapped in the proper vale type
     def wrap(self):
-        value_type = type(self.value)
-        if value_type is int:
-            return Integer(self.value)
-        elif value_type is float:
-            return Float(self.value)
-        elif value_type is str:
-            return String(self.value)
-        elif value_type is bool:
-            return Boolean(self.value)
-        elif value_type is list:
-            return List(self.value)
-        elif self.value is None:
-            return Null()
+        return _wrappers[type(self.value)](self.value)
 
     def equals(self, value):
         return self.value == value.value if isinstance(value, Value) else False
@@ -95,6 +83,16 @@ class List(Value):
 
     def type(self):
         return 'list'
+
+# Python types as keys for Dsl types, for efficient Value wrapping
+_wrappers = {
+    int     : Integer,
+    float   : Float,
+    str     : String,
+    bool    : Boolean,
+    None    : Null,
+    list    : List,
+}
 
 # Parent class for all types that can be called with identifier() syntax
 @dataclass
@@ -269,7 +267,7 @@ class Object:
         self.class_name = class_name
         self.object_context = object_context
 
-        self.object_context.symbol_table.define('this', self)
+        self.object_context.symbol_table.define('this', self, access=AccessType.PRIVATE)
 
     def get(self, name):
         table = self.object_context.symbol_table

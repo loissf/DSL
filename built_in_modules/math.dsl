@@ -27,7 +27,7 @@ function fibonacci(n):
 end
 
 function pow(base, exponent):
-    result = base
+    var result = base
     for i, exponent-1:
         result = result * base
     end

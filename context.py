@@ -101,12 +101,12 @@ class Context:
 
     # Returns the context hierarchy
     def get_hierarchy(self):
-        context = ''
-        if self.parent:
-            context += f'{self}\n{self.parent.get_hierarchy()}'
-        else:
-            context += f'{self}\n'
-        return context
+        hierarchy = []
+        context = self
+        while context is not None:
+            hierarchy.append(context)
+            context = context.parent
+        return hierarchy
 
     def copy(self):
         return Context(self.display_name, self.symbol_table, self.parent, self.output)

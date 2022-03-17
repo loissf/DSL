@@ -55,7 +55,7 @@ class Boolean(Value):
 @dataclass(repr=False)
 class Null(Value):
     value: None
-    def __init__(self):
+    def __init__(self, value = None):
         super().__init__(None)
 
     def type(self):
@@ -90,8 +90,8 @@ _wrappers = {
     float   : Float,
     str     : String,
     bool    : Boolean,
-    None    : Null,
     list    : List,
+    type(None): Null,
 }
 
 # Parent class for all types that can be called with identifier() syntax
@@ -269,14 +269,18 @@ class Object:
 
         self.object_context.symbol_table.define('this', self, access=AccessType.PRIVATE)
 
-    def get(self, name):
+    def get(self, name: str, context: Context = None):
         table = self.object_context.symbol_table
-        if table.get_access(name) == AccessType.PUBLIC:
+        if self.object_context in context.get_hierarchy():
+            return table.get_local(name)
+        elif table.get_access(name) == AccessType.PUBLIC:
             return table.get_local(name)
 
-    def set(self, name, value):
+    def set(self, name: str, value, context: Context = None):
         table = self.object_context.symbol_table
-        if table.get_access(name) == AccessType.PUBLIC:
+        if self.object_context in context.get_hierarchy():
+            return table.set(name, value)
+        elif table.get_access(name) == AccessType.PUBLIC:
             return table.set(name, value)
 
     def type(self):

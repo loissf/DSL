@@ -49,7 +49,7 @@ class Interpreter:
 
         value = self.visit(node.value_node, context)
 
-        object_value.set(var_name, value)
+        object_value.set(var_name, value, context)
 
         return Null()
 
@@ -64,7 +64,7 @@ class Interpreter:
         else:
             var_name = node.attribute_node.var_name_token.value
 
-        attribute_value = object_value.get(var_name)
+        attribute_value = object_value.get(var_name, context)
 
         if attribute_value == None:
             raise TypeErrorDsl(f'{node.attribute_node} is not defined', node.position)

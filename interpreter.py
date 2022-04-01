@@ -242,8 +242,8 @@ class Interpreter:
         if node.op_token.type == TokenType.MINUS:
             result = - self.visit(node.node, context).value
             return Integer(result) if type(result) == int else Float(result)
-        if node.op_token.type.matches(TokenType.KEYWORD, 'not'):
-            result = not self.visit(node.node, context)
+        if node.op_token.matches(TokenType.KEYWORD, 'not'):
+            result = not self.visit(node.node, context).value
             return Boolean(result)
 
     def visit_BinOpNode(self, node: BinOpNode, context: Context):

@@ -76,7 +76,6 @@ class ImportNode(Node):
 @dataclass
 class ReturnNode(Node):
     value_node: Node
-    value_node: Node
 
 # VARIABLES
 ##################################

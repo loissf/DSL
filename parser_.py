@@ -92,7 +92,7 @@ class Parser:
             define_node.access = AccessType.PRIVATE
             return define_node
 
-        # Public VarDefineNode
+        # VarDefNode
         #############################
         if self.current_token.matches(TokenType.KEYWORD, 'var'):
             return self.var_def()
@@ -117,6 +117,7 @@ class Parser:
         return left_node
 
     def comp_op(self):
+
         left_node = self.arith_op()
 
         # UnaryOpNode           token arithmetic_operation
@@ -132,7 +133,7 @@ class Parser:
         # for '>' , '<' , '==' , '>=' , '<=' , '!=' comparation operators
         ######################################################
         elif self.current_token is not None and self.current_token.type in TypeGroups.COMPARATION_OP:
-
+                
             op_token = self.current_token
 
             self.advance()
@@ -197,7 +198,7 @@ class Parser:
             return result
         #############################
 
-        # Compound statmets if , function definition , list definition , TODO for , while ...
+        # Compound statmets if , function definition , list definition , for , TODO while ...
         ######################################################
         elif self.current_token.matches(TokenType.KEYWORD, 'function'):
             return self.func_def()
@@ -304,7 +305,7 @@ class Parser:
                     index = self.expr()
 
                     if self.current_token.type != TokenType.RSQUARE:
-                        raise Exception(f"Invalid syntax, expected ']' found {self.current_token}")
+                        raise SyntaxErrorDsl(f"Invalid syntax, expected ']' found {self.current_token}")
 
                     self.advance()
                     list_node = ListAccessNode(list_node, index)
@@ -563,7 +564,7 @@ class Parser:
         steps = self.arith_op()
 
         if self.current_token.type != TokenType.COLON:
-            raise SyntaxErrorDsl("Invalid syntax, expected ','", position)
+            raise SyntaxErrorDsl("Invalid syntax, expected ':'", position)
         self.advance()
 
         body_node = self.statment()
